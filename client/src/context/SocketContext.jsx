@@ -16,7 +16,7 @@ export const SocketProvider = ({ children }) => {
     const {employee}=useSelector(store=>store.employee);
     useEffect(()=>{
         if(user || employee){
-            const socket = io('https://api.speedservice.store',{
+            const socket = io('https://speed-service.onrender.com',{
                 query:{
                     userId:user?.id,
                     employeeId:employee?.id,
