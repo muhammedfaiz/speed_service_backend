@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/message';
+const API_URL = 'https://speed-service.onrender.com/api/message';
 
 const axiosInstance = axios.create({
     baseURL: API_URL,

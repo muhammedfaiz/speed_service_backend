@@ -106,27 +106,12 @@ export const verifyToken = (token)=>{
     return jwt.verify(token, process.env.JWT_SECRET);
 }
 
-// Image storage: Cloudinary (free tier) — replaces the old S3 setup.
-// Sign up free at cloudinary.com and set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY
-// and CLOUDINARY_API_SECRET in the server .env; until those are set, or if
-// Cloudinary is briefly unavailable, these helpers fail soft (return null)
-// instead of throwing, so the rest of a response still goes through.
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Our stored keys (from randomName) keep the original file extension, e.g.
-// "1234567_photo.png" — but Cloudinary always appends its own detected format
-// suffix on top of whatever public_id it's given, so uploading with the
-// extension still in the public_id produces an asset at "...photo.png.png".
-// Stripping the extension before talking to Cloudinary avoids that double
-// suffix; the DB-stored key itself is untouched, so no controller changes needed.
-// Delivery URLs still need that format appended explicitly, though — Cloudinary's
-// extension-less delivery isn't reliable for every format (confirmed AVIF 404s
-// without it), so getFile passes it back in via the `format` option instead of
-// leaving the URL bare.
 const stripExtension = (key) => key.replace(/\.[^./]+$/, '');
 const getExtension = (key) => key.match(/\.([^./]+)$/)?.[1];
 const FOLDER = 'speed-service';

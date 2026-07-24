@@ -17,11 +17,7 @@ app.use(cookieParser());
 connect();
 app.use(
   cors({
-    // Vite's dev server falls back to 5174, 5175, etc. whenever 5173 is
-    // already taken, so pin to a single port here silently drops every
-    // request from the browser as an (unhelpful) network error. Accept any
-    // localhost port in dev instead.
-    origin: /^http:\/\/localhost:\d+$/,
+    origin: 'https://speed-service-tan.vercel.app/',
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   })

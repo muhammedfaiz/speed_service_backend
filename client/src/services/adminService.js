@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/admin';
+const API_URL = 'https://speed-service.onrender.com/api/admin';
 
 const axiosInstance = axios.create({
     baseURL: API_URL,
