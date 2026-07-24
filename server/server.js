@@ -17,7 +17,7 @@ app.use(cookieParser());
 connect();
 app.use(
   cors({
-    origin: 'https://speed-service-tan.vercel.app/',
+    origin: 'https://speed-service-tan.vercel.app',
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   })
