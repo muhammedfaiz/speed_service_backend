@@ -21,7 +21,7 @@ import {
 } from "../services/employeeServices.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 import {
-  addFileToS3,
+  uploadFile,
   generateAccessToken,
   generateRefreshToken,
   getFile,
@@ -58,7 +58,7 @@ export const application = async (req, res) => {
       experience,
       proof: fileName,
     });
-    await addFileToS3(req.file, fileName);
+    await uploadFile(req.file, fileName);
     res.status(200).json({ message: "Application submitted" });
   } catch (error) {
     console.log(error);

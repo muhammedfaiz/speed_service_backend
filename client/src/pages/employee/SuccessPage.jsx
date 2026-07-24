@@ -1,24 +1,28 @@
-import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { CheckCircle2 } from "lucide-react";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
 
 const SuccessPage = () => {
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-indigo-950 min-h-screen flex items-center">
-        <div className="max-w-4xl p-6 mx-auto bg-gray-800 rounded-md shadow-md dark:bg-gray-800">
-      <h1 className="text-xl font-bold text-white capitalize dark:text-white">
-        Application Submitted Successfully!
-      </h1>
-      <p className="mt-4 text-white dark:text-gray-200">
-        Thank you for submitting your application. We will review it and get back to you soon.
-      </p>
-      <div className="flex justify-end mt-6">
-        <Link
-          to="/"
-          className="px-6 py-2 leading-5 text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-700 focus:outline-none focus:bg-gray-600 font-semibold"
+    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
+      <Card hoverable={false} padding="lg" className="max-w-md text-center !rounded-3xl">
+        <motion.span
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.1 }}
+          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent-50 text-accent-600"
         >
+          <CheckCircle2 size={44} />
+        </motion.span>
+        <h1 className="mt-6 text-2xl font-bold text-fg font-display">Application Submitted!</h1>
+        <p className="mt-3 text-fg-muted">
+          Thank you for applying. We&apos;ll review your application and get back to you soon.
+        </p>
+        <Button to="/" size="lg" className="mt-8 w-full">
           Go to Home
-        </Link>
-      </div>
-    </div>
+        </Button>
+      </Card>
     </div>
   );
 };

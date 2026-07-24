@@ -1,13 +1,15 @@
 import Navbar from "../../components/employee/Navbar";
-import { FaBoxOpen } from "react-icons/fa";
+import { PackageOpen } from "lucide-react";
 import ServiceCard from "../../components/employee/ServiceCard";
 import { useEffect, useState } from "react";
 import { fetchServices } from "../../services/employeeService";
+import Tabs from "../../components/ui/Tabs";
+import EmptyState from "../../components/ui/EmptyState";
 
 const EmployeeServices = () => {
   const [services, setServices] = useState([]);
   const [acceptedServices, setAcceptedServices] = useState([]);
-  const [serviceList, setServiceList] = useState(true);
+  const [activeTab, setActiveTab] = useState("available");
   const [isChanged, setIsChanged] = useState(false);
 
   useEffect(() => {
@@ -23,77 +25,45 @@ const EmployeeServices = () => {
     getServices();
   }, [isChanged]);
 
+  const serviceList = activeTab === "available";
+  const list = serviceList ? services : acceptedServices;
+
   return (
     <>
       <Navbar />
-      <div className="flex bg-slate-100 min-h-screen">
-        <aside className="w-1/6 bg-gray-200 flex flex-col h-min-screen p-6">
-          <div className="bg-gray-300 py-2 px-4 rounded-md flex items-center justify-center mb-4">
-            <FaBoxOpen className="mr-2 text-xl" />
-            <h2 className="text-lg font-semibold">Services</h2>
-          </div>
-          <ul className="mt-5 space-y-3 cursor-pointer text-center">
-            <li
-              className={`text-base font-semibold hover:text-gray-500 ${
-                serviceList ? "text-gray-800" : "text-gray-600"
-              }`}
-              onClick={() => setServiceList(true)}
-            >
-              Service List
-            </li>
-            <li
-              className={`text-base font-semibold hover:text-gray-500 ${
-                !serviceList ? "text-gray-800" : "text-gray-600"
-              }`}
-              onClick={() => setServiceList(false)}
-            >
-              Accepted Services
-            </li>
-          </ul>
-        </aside>
-        <main className="flex-1 p-6">
-          {serviceList ? (
-            <div>
-              <h1 className="text-2xl font-bold mb-1">Service List</h1>
-              <p className="text-sm mb-4 text-gray-500">Services you can provide.</p>
-              {services.length > 0 ? (
-                services.map((service, index) => (
-                  <ServiceCard
-                    key={index}
-                    service={service}
-                    setIsChanged={setIsChanged}
-                    isChanged={isChanged}
-                    serviceList={serviceList}
-                  />
-                ))
-              ) : (
-                <div className="text-center text-gray-500 mt-10">
-                  No services available at the moment.
-                </div>
-              )}
-            </div>
+      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-bold text-fg font-display">Services</h1>
+        <p className="mt-1 text-fg-muted">Manage the services you can provide and the ones you&apos;ve accepted.</p>
+
+        <Tabs
+          className="mt-6 inline-flex"
+          tabs={[
+            { id: "available", label: "Service List" },
+            { id: "accepted", label: "Accepted Services" },
+          ]}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
+
+        <div className="mt-6">
+          {list.length > 0 ? (
+            list.map((service, index) => (
+              <ServiceCard
+                key={index}
+                service={service}
+                setIsChanged={setIsChanged}
+                isChanged={isChanged}
+                serviceList={serviceList}
+              />
+            ))
           ) : (
-            <div>
-              <h1 className="text-2xl font-bold mb-1">Accepted Services</h1>
-              <p className="text-sm mb-4 text-gray-500">Services you are providing.</p>
-              {acceptedServices.length > 0 ? (
-                acceptedServices.map((service, index) => (
-                  <ServiceCard
-                    key={index}
-                    service={service}
-                    setIsChanged={setIsChanged}
-                    isChanged={isChanged}
-                    serviceList={serviceList}
-                  />
-                ))
-              ) : (
-                <div className="text-center text-gray-500 mt-10">
-                  No accepted services at the moment.
-                </div>
-              )}
-            </div>
+            <EmptyState
+              icon={PackageOpen}
+              title={serviceList ? "No services available" : "No accepted services"}
+              description={serviceList ? "Check back later for new service requests." : "Services you accept will show up here."}
+            />
           )}
-        </main>
+        </div>
       </div>
     </>
   );

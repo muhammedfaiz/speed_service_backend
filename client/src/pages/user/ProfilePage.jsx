@@ -1,16 +1,15 @@
-import { useEffect, useState } from "react";
-import { FaUserCircle, FaPencilAlt, FaCamera } from "react-icons/fa";
-import { MdOutlineCancel } from "react-icons/md";
+import { useEffect, useRef, useState } from "react";
+import { Pencil, X, Camera, User as UserIcon, ClipboardList, CheckCircle2, Clock3 } from "lucide-react";
 import Navbar from "../../components/user/Navbar";
 import Footer from "../../components/user/Footer";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  changeProfileImage,
-  getProfile,
-  updateProfileDetails,
-} from "../../features/userSlice";
+import { changeProfileImage, getProfile, updateProfileDetails } from "../../features/userSlice";
 import { toast } from "react-toastify";
 import userService from "../../services/userService";
+import Card from "../../components/ui/Card";
+import Avatar from "../../components/ui/Avatar";
+import Input from "../../components/ui/Input";
+import Button from "../../components/ui/Button";
 
 const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -22,6 +21,7 @@ const UserProfile = () => {
   });
   const [errors, setErrors] = useState({});
   const [stats, setStats] = useState({});
+  const fileInputRef = useRef(null);
 
   const dispatch = useDispatch();
   useEffect(() => {
@@ -93,126 +93,80 @@ const UserProfile = () => {
     dispatch(changeProfileImage(formData));
   };
 
+  const STATS = [
+    { label: "Services Booked", value: stats.booked, icon: ClipboardList, color: "text-primary bg-primary-50" },
+    { label: "Services Completed", value: stats.completed, icon: CheckCircle2, color: "text-accent-600 bg-accent-50" },
+    { label: "Pending Service", value: stats.pending, icon: Clock3, color: "text-amber-600 bg-amber-50" },
+  ];
+
   return (
     <>
       <Navbar />
-      <div className="max-w-3xl mx-auto my-10 bg-white shadow-xl rounded-lg p-6 sm:p-10">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-10 space-y-6 md:space-y-0">
-          <div className="flex flex-col sm:flex-row items-center space-x-6">
-            <div className="relative">
-              {!user.url ? (
-                <FaUserCircle className="text-gray-300 text-9xl" />
-              ) : (
-                <img
-                  className="rounded-full object-contain h-36 sm:h-48"
-                  src={user.url}
-                  alt="profile"
-                />
-              )}
-              <label className="absolute bottom-2 right-2 bg-blue-600 p-2 rounded-full cursor-pointer hover:bg-blue-500 transition">
-                <FaCamera className="text-white" />
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => handleImageChange(e)}
-                />
-              </label>
+      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+        <Card hoverable={false} padding="lg" className="!rounded-3xl">
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
+            <div className="flex flex-col items-center gap-4 sm:flex-row">
+              <div className="relative">
+                {user.url ? (
+                  <Avatar src={user.url} size="xl" ring />
+                ) : (
+                  <span className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 text-fg-subtle">
+                    <UserIcon size={40} />
+                  </span>
+                )}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-soft hover:bg-primary-700"
+                >
+                  <Camera size={14} />
+                </button>
+                <input ref={fileInputRef} type="file" className="hidden" onChange={handleImageChange} />
+              </div>
+              <div className="text-center sm:text-left">
+                <h2 className="text-2xl font-bold text-fg font-display">{user?.name}</h2>
+                <p className="text-sm text-fg-muted">{user?.email}</p>
+                <p className="text-sm text-fg-muted">{user?.phone}</p>
+              </div>
             </div>
-            <div className="text-center sm:text-left">
-              <h2 className="text-2xl sm:text-4xl font-bold text-gray-800">{user?.name}</h2>
-              <p className="text-gray-600">{user?.email}</p>
-              <p className="text-gray-600">{user?.phone}</p>
-            </div>
+            {isEditing ? (
+              <Button variant="danger" icon={X} onClick={handleEditToggle}>
+                Cancel
+              </Button>
+            ) : (
+              <Button icon={Pencil} onClick={handleEditToggle}>
+                Edit Profile
+              </Button>
+            )}
           </div>
-          {isEditing ? (
-            <button
-              onClick={handleEditToggle}
-              className="flex items-center bg-red-600 text-white px-4 py-2 sm:px-5 sm:py-3 rounded-md hover:bg-red-700 transition"
-            >
-              <MdOutlineCancel className="mr-2 text-lg" />
-              {"Cancel"}
-            </button>
-          ) : (
-            <button
-              onClick={handleEditToggle}
-              className="flex items-center bg-blue-600 text-white px-4 py-2 sm:px-5 sm:py-3 rounded-md hover:bg-blue-700 transition"
-            >
-              <FaPencilAlt className="mr-2" /> {"Edit Profile"}
-            </button>
-          )}
-        </div>
 
-        {isEditing && (
-          <form onSubmit={handleFormSubmit} className="space-y-6 sm:space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-              <div>
-                <label className="block text-gray-700 font-medium">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={data.name}
-                  onChange={(e) => handleInputChange(e)}
-                  className="w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {errors.name && (
-                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-                )}
+          {isEditing && (
+            <form onSubmit={handleFormSubmit} className="mt-8 space-y-5">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                <Input label="Name" name="name" value={data.name} onChange={handleInputChange} error={errors.name} />
+                <Input label="Email" name="email" value={data.email} onChange={handleInputChange} error={errors.email} />
+                <Input label="Phone" name="phone" value={data.phone} onChange={handleInputChange} error={errors.phone} />
               </div>
-              <div>
-                <label className="block text-gray-700 font-medium">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={data.email}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium">Phone</label>
-                <input
-                  type="text"
-                  name="phone"
-                  value={data.phone}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {errors.phone && (
-                  <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-center">
-              <button
-                type="submit"
-                className="w-full sm:w-1/2 bg-primary-blue text-white px-4 py-2 sm:py-3 rounded-lg hover:bg-secondary-blue transition"
-              >
+              <Button type="submit" size="lg">
                 Save Changes
-              </button>
-            </div>
-          </form>
-        )}
+              </Button>
+            </form>
+          )}
 
-        <div className="mt-12 space-y-6 sm:space-y-8">
-          <h3 className="text-2xl font-semibold text-gray-800">Your Stats</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="bg-blue-50 p-6 sm:p-8 rounded-lg shadow-sm text-center hover:shadow-lg transition">
-              <h4 className="text-2xl font-bold text-gray-700">{stats.booked}</h4>
-              <p className="text-gray-600">Services Booked</p>
-            </div>
-            <div className="bg-blue-50 p-6 sm:p-8 rounded-lg shadow-sm text-center hover:shadow-lg transition">
-              <h4 className="text-2xl font-bold text-gray-700">{stats.completed}</h4>
-              <p className="text-gray-600">Services Completed</p>
-            </div>
-            <div className="bg-blue-50 p-6 sm:p-8 rounded-lg shadow-sm text-center hover:shadow-lg transition">
-              <h4 className="text-2xl font-bold text-gray-700">{stats.pending}</h4>
-              <p className="text-gray-600">Pending Service</p>
+          <div className="mt-10 border-t border-slate-100 pt-8">
+            <h3 className="text-lg font-semibold text-fg font-display">Your Stats</h3>
+            <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-3">
+              {STATS.map((stat) => (
+                <Card key={stat.label} padding="md" className="text-center">
+                  <span className={`mx-auto flex h-12 w-12 items-center justify-center rounded-2xl ${stat.color}`}>
+                    <stat.icon size={22} />
+                  </span>
+                  <h4 className="mt-3 text-2xl font-bold text-fg font-display">{stat.value || 0}</h4>
+                  <p className="text-sm text-fg-muted">{stat.label}</p>
+                </Card>
+              ))}
             </div>
           </div>
-        </div>
+        </Card>
       </div>
       <Footer />
     </>

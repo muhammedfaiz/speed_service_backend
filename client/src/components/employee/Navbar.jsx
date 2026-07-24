@@ -1,266 +1,207 @@
-import { NavLink, useNavigate } from 'react-router-dom';
-import logo from '../../assets/logo-transparent.png';
-import { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../features/employeeSlice';
-import { FaBell } from 'react-icons/fa';
-import { useNotificationContext } from '../../context/NotificationContext';
+import { NavLink, Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AnimatePresence, motion } from "framer-motion";
+import { Bell, Menu, LogOut, User as UserIcon, LayoutDashboard, Wrench, ListChecks, ClipboardList, History, Zap } from "lucide-react";
+import { logout } from "../../features/employeeSlice";
+import { useNotificationContext } from "../../context/NotificationContext";
+import Drawer from "../ui/Drawer";
+import Avatar from "../ui/Avatar";
+import Button from "../ui/Button";
+
+const NAV_LINKS = [
+  { label: "Dashboard", to: "/employee/dashboard" },
+  { label: "Services", to: "/employee/services" },
+  { label: "Tasks", to: "/employee/tasks" },
+  { label: "Requests", to: "/employee/requests" },
+  { label: "History", to: "/employee/history" },
+];
+
+const MOBILE_ICONS = { Dashboard: LayoutDashboard, Services: Wrench, Tasks: ListChecks, Requests: ClipboardList, History: History };
+
+const navLinkClass = ({ isActive }) =>
+  `rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+    isActive ? "bg-primary-50 text-primary" : "text-fg-muted hover:text-fg hover:bg-slate-100"
+  }`;
+
+const mobileNavLinkClass = ({ isActive }) =>
+  `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+    isActive ? "bg-primary-50 text-primary" : "text-fg-muted hover:bg-slate-100"
+  }`;
 
 const Navbar = () => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [toggleNotifications, setToggleNotifications] = useState(false); // State for notifications
-  const { employee } = useSelector((store) => store.employee);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const { employee } = useSelector((store) => store.employee);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const {employeeNotifications} = useNotificationContext();
-  
+  const { employeeNotifications } = useNotificationContext();
+
   const handleLogout = () => {
     dispatch(logout());
     navigate("/employee/login");
   };
 
   return (
-    <div>
-      <nav className="bg-gradient-to-r from-blue-600 to-indigo-950 shadow z-10">
-        <div className="px-8 mx-auto max-w-7xl">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <a className="flex-shrink-0" href="/">
-                <img className="w-32" src={logo} alt="Speed Service" />
-              </a>
-              <div className="hidden md:block">
-                <div className="flex items-baseline ml-10 space-x-4">
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? 'text-white px-3 py-2 rounded-md text-sm font-medium'
-                        : 'text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium'
-                    }
-                    to="/employee/dashboard"
-                  >
-                    Dashboard
-                  </NavLink>
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? 'text-white px-3 py-2 rounded-md text-sm font-medium'
-                        : 'text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium'
-                    }
-                    to="/employee/services"
-                  >
-                    Services
-                  </NavLink>
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? 'text-white px-3 py-2 rounded-md text-sm font-medium'
-                        : 'text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium'
-                    }
-                    to="/employee/tasks"
-                  >
-                    Tasks
-                  </NavLink>
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? 'text-white px-3 py-2 rounded-md text-sm font-medium'
-                        : 'text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium'
-                    }
-                    to="/employee/requests"
-                  >
-                    Request
-                  </NavLink>
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? 'text-white px-3 py-2 rounded-md text-sm font-medium'
-                        : 'text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium'
-                    }
-                    to="/employee/history"
-                  >
-                    History
-                  </NavLink>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              {/* Notification Icon */}
-              <div className="relative ml-4">
-                <button
-                  onClick={() => setToggleNotifications(!toggleNotifications)}
-                  className="relative p-2 text-white hover:text-gray-300"
-                >
-                  <FaBell className="text-xl" />
-                  {employeeNotifications.length > 0 && (
-                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
-                      {employeeNotifications.length}
-                    </span>
-                  )}
-                </button>
+    <motion.nav
+      initial={{ y: -16, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="sticky top-0 z-50 glass shadow-glass"
+    >
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link to="/employee/dashboard" className="flex items-center gap-2 text-lg font-bold text-fg font-display">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl gradient-brand">
+            <Zap size={18} className="text-white" fill="currentColor" />
+          </span>
+          <span className="hidden sm:inline">Speed Service</span>
+        </Link>
 
-                {toggleNotifications && (
-                  <div className="absolute right-0 mt-2 md:w-72 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                    <div className="p-4">
-                      <h3 className="text-lg font-semibold">Notifications</h3>
-                      <ul className="mt-4 space-y-2">
-                        {employeeNotifications.length > 0 ? (
-                          employeeNotifications.map((notification, index) => (
-                            <li
-                              key={index}
-                              className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-                            >
-                              {notification}
-                            </li>
-                          ))
-                        ) : (
-                          <li className="text-gray-500">No new notifications</li>
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Profile Icon */}
-              <div className="relative">
-                <button
-                  type="button"
-                  className="flex items-center justify-center w-full rounded-lg px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-50 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none"
-                  onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                >
-                  <svg
-                    width="20"
-                    fill="currentColor"
-                    height="20"
-                    className="text-white"
-                    viewBox="0 0 1792 1792"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M1523 1339q-22-155-87.5-257.5t-184.5-118.5q-67 74-159.5 115.5t-195.5 41.5-195.5-41.5-159.5-115.5q-119 16-184.5 118.5t-87.5 257.5q106 150 271 237.5t356 87.5 356-87.5 271-237.5zm-243-699q0-159-112.5-271.5t-271.5-112.5-271.5 112.5-112.5 271.5 112.5 271.5 271.5 112.5 271.5-112.5 112.5-271.5zm512 256q0 182-71 347.5t-190.5 286-285.5 191.5-349 71q-182 0-348-71t-286-191-191-286-71-348 71-348 191-286 286-191 348-71 348 71 286 191 191 286 71 348z"></path>
-                  </svg>
-                </button>
-
-                {profileMenuOpen && (
-                  <div className="absolute right-0 w-56 mt-2 origin-top-right  rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
-                    {employee ? (
-                      <div className="py-1" role="menu">
-                        <NavLink
-                          to="/employee/profile"
-                          className="block px-4 py-2 text-md text-gray-100 hover:text-white hover:bg-gray-600"
-                          role="menuitem"
-                        >
-                          <span className="flex flex-col">
-                            <span>Profile</span>
-                          </span>
-                        </NavLink>
-                        <button
-                          onClick={handleLogout}
-                          className="block w-full text-left px-4 py-2 text-md text-gray-100 hover:text-white hover:bg-gray-600"
-                          role="menuitem"
-                        >
-                          <span className="flex flex-col">
-                            <span>Logout</span>
-                          </span>
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="py-1" role="menu">
-                        <NavLink
-                          to="/employee/login"
-                          className="block px-4 py-2 text-md text-gray-100 hover:text-white hover:bg-gray-600"
-                          role="menuitem"
-                        >
-                          <span className="flex flex-col">
-                            <span>Login</span>
-                          </span>
-                        </NavLink>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex -mr-2 md:hidden">
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="text-white hover:text-gray-300 inline-flex items-center justify-center p-2 rounded-md focus:outline-none"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  className="w-8 h-8"
-                  viewBox="0 0 1792 1792"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M1664 1344v128q0 26-19 45t-45 19h-1408q-26 0-45-19t-19-45v-128q0-26 19-45t45-19h1408q26 0 45 19t19 45zm0-512v128q0 26-19 45t-45 19h-1408q-26 0-45-19t-19-45v-128q0-26 19-45t45-19h1408q26 0 45 19t19 45zm0-512v128q0 26-19 45t-45 19h-1408q-26 0-45-19t-19-45v-128q0-26 19-45t45-19h1408q26 0 45 19t19 45z"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
+        <div className="hidden items-center gap-1 md:flex">
+          {NAV_LINKS.map((link) => (
+            <NavLink key={link.to} to={link.to} className={navLinkClass}>
+              {link.label}
+            </NavLink>
+          ))}
         </div>
 
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              <NavLink
-                className={({ isActive }) =>
-                  isActive
-                    ? 'text-white block px-3 py-2 rounded-md text-base font-medium'
-                    : 'text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium'
-                }
-                to="/employee/dashboard"
-              >
-                Dashboard
-              </NavLink>
-              <NavLink
-                className={({ isActive }) =>
-                  isActive
-                    ? 'text-white block px-3 py-2 rounded-md text-base font-medium'
-                    : 'text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium'
-                }
-                to="/employee/services"
-              >
-                Services
-              </NavLink>
-              <NavLink
-                className={({ isActive }) =>
-                  isActive
-                    ? 'text-white block px-3 py-2 rounded-md text-base font-medium'
-                    : 'text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium'
-                }
-                to="/employee/tasks"
-              >
-                Tasks
-              </NavLink>
-              <NavLink
-                className={({ isActive }) =>
-                  isActive
-                    ? 'text-white block px-3 py-2 rounded-md text-base font-medium'
-                    : 'text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium'
-                }
-                to="/employee/requests"
-              >
-                Request
-              </NavLink>
-              <NavLink
-                className={({ isActive }) =>
-                  isActive
-                    ? 'text-white block px-3 py-2 rounded-md text-base font-medium'
-                    : 'text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium'
-                }
-                to="/employee/history"
-              >
-                History
-              </NavLink>
-            </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={() => {
+                setNotificationsOpen(!notificationsOpen);
+                setProfileMenuOpen(false);
+              }}
+              aria-label="Notifications"
+              className="relative rounded-full p-2.5 text-fg-muted transition-colors hover:bg-slate-100 hover:text-fg"
+            >
+              <Bell size={20} />
+              {employeeNotifications.length > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {employeeNotifications.length}
+                </span>
+              )}
+            </button>
+
+            <AnimatePresence>
+              {notificationsOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-72 rounded-2xl border border-slate-100 bg-card p-4 shadow-elevated sm:w-80"
+                >
+                  <h3 className="text-sm font-semibold text-fg font-display">Notifications</h3>
+                  <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto">
+                    {employeeNotifications.length > 0 ? (
+                      employeeNotifications.map((notification, index) => (
+                        <li key={index} className="rounded-xl bg-slate-50 p-3 text-sm text-fg">
+                          {notification}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="py-4 text-center text-sm text-fg-muted">No new notifications</li>
+                    )}
+                  </ul>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        )}
-      </nav>
-    </div>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setProfileMenuOpen(!profileMenuOpen);
+                setNotificationsOpen(false);
+              }}
+              className="flex items-center justify-center rounded-full transition-transform hover:scale-105"
+            >
+              {employee ? (
+                <Avatar name={employee.name} size="sm" ring />
+              ) : (
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-fg-muted">
+                  <UserIcon size={18} />
+                </span>
+              )}
+            </button>
+
+            <AnimatePresence>
+              {profileMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-slate-100 bg-card p-1.5 shadow-elevated"
+                >
+                  {employee ? (
+                    <>
+                      <NavLink
+                        to="/employee/profile"
+                        onClick={() => setProfileMenuOpen(false)}
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-fg transition-colors hover:bg-slate-100"
+                      >
+                        <UserIcon size={16} /> Profile
+                      </NavLink>
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                      >
+                        <LogOut size={16} /> Logout
+                      </button>
+                    </>
+                  ) : (
+                    <NavLink
+                      to="/employee/login"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="block rounded-xl px-3 py-2.5 text-sm font-medium text-fg transition-colors hover:bg-slate-100"
+                    >
+                      Login
+                    </NavLink>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <button
+            onClick={() => setIsOpen(true)}
+            aria-label="Open menu"
+            className="rounded-full p-2.5 text-fg-muted transition-colors hover:bg-slate-100 hover:text-fg md:hidden"
+          >
+            <Menu size={20} />
+          </button>
+        </div>
+      </div>
+
+      <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title="Menu">
+        <div className="flex flex-col gap-1">
+          {NAV_LINKS.map((link) => {
+            const Icon = MOBILE_ICONS[link.label];
+            return (
+              <NavLink key={link.to} to={link.to} onClick={() => setIsOpen(false)} className={mobileNavLinkClass}>
+                <Icon size={18} /> {link.label}
+              </NavLink>
+            );
+          })}
+        </div>
+
+        <div className="mt-6 border-t border-slate-100 pt-6">
+          {employee ? (
+            <Button variant="danger" icon={LogOut} className="w-full" onClick={handleLogout}>
+              Logout
+            </Button>
+          ) : (
+            <Button to="/employee/login" className="w-full" onClick={() => setIsOpen(false)}>
+              Login
+            </Button>
+          )}
+        </div>
+      </Drawer>
+    </motion.nav>
   );
 };
 

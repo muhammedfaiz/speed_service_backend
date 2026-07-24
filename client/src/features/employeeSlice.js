@@ -4,7 +4,7 @@ import { getProfileService, loginService, logoutService, updateEmployeeProfileSe
 
 const initialState = {
     isLoggedIn: false,
-    employee: localStorage.getItem("employee")||null,
+    employee: JSON.parse(localStorage.getItem("employee"))||null,
     error: null,
     token:localStorage.getItem("employee_access_token")|| null,
 }

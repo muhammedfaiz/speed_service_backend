@@ -1,8 +1,18 @@
 import Navbar from "../../components/user/Navbar";
 import { useEffect, useState } from "react";
-import { MdDateRange, MdAccessTime, MdPayment, MdInfoOutline } from "react-icons/md";
+import { CalendarDays, Clock, CreditCard, Info, CalendarX2 } from "lucide-react";
 import userService from "../../services/userService";
 import { useNavigate } from "react-router-dom";
+import Card from "../../components/ui/Card";
+import Badge from "../../components/ui/Badge";
+import Button from "../../components/ui/Button";
+import EmptyState from "../../components/ui/EmptyState";
+
+const STATUS_VARIANT = {
+  Completed: "accent",
+  Cancelled: "danger",
+  Commited: "primary",
+};
 
 const BookingsPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -23,58 +33,38 @@ const BookingsPage = () => {
   return (
     <>
       <Navbar />
-      <div className="p-4 md:p-8 flex flex-col items-center min-h-screen bg-gray-100">
-        <h2 className="text-2xl md:text-3xl font-semibold mb-6 md:mb-8 text-gray-800">Your Bookings</h2>
-        <div className="w-full max-w-2xl md:max-w-4xl bg-white p-6 md:p-8 rounded-lg shadow-lg">
+      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-bold text-fg font-display">Your Bookings</h1>
+        <p className="mt-1 text-fg-muted">Track and manage all your service bookings.</p>
+
+        <div className="mt-8 space-y-4">
           {bookings.length > 0 ? (
             bookings.map((booking) => (
-              <div
-                key={booking.orderId}
-                className="p-4 md:p-6 mb-4 md:mb-6 bg-gray-50 rounded-md shadow-sm border-b hover:shadow-md transition-shadow duration-200"
-              >
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-700">Order ID: {booking.orderId}</h3>
-                  <span
-                    className={`mt-2 md:mt-0 px-3 py-1 rounded-full text-xs md:text-sm ${
-                      booking.status === "Completed"
-                        ? "bg-green-100 text-green-700"
-                        : booking.status === "Cancelled"
-                        ? "bg-red-100 text-red-700"
-                        : booking.status === "Commited"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {booking.status}
-                  </span>
+              <Card key={booking.orderId} hoverable={false}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="font-semibold text-fg">Order #{booking.orderId}</h3>
+                  <Badge variant={STATUS_VARIANT[booking.status] || "warning"}>{booking.status}</Badge>
                 </div>
-                <div className="text-gray-600 text-sm md:text-base">
-                  <p className="mb-2 flex items-center">
-                    <MdDateRange className="mr-2 text-primary-blue" />
-                    <span className="font-medium">Date:</span> {new Date(booking.date).toDateString()}
+                <div className="mt-4 space-y-2 text-sm text-fg-muted">
+                  <p className="flex items-center gap-2">
+                    <CalendarDays size={15} className="text-primary" /> {new Date(booking.date).toDateString()}
                   </p>
-                  <p className="mb-2 flex items-center">
-                    <MdAccessTime className="mr-2 text-primary-blue" />
-                    <span className="font-medium">Time:</span> {booking.time}
+                  <p className="flex items-center gap-2">
+                    <Clock size={15} className="text-primary" /> {booking.time}
                   </p>
-                  <p className="mb-2 flex items-center">
-                    <MdPayment className="mr-2 text-primary-blue" />
-                    <span className="font-medium">Payment:</span> {booking.paymentMethod}
+                  <p className="flex items-center gap-2">
+                    <CreditCard size={15} className="text-primary" /> {booking.paymentMethod}
                   </p>
                 </div>
-                <div className="flex justify-end space-x-4 mt-4">
-                  <button
-                    className="text-primary-blue flex items-center hover:underline text-xs md:text-sm"
-                    onClick={() => navigate(`/booking-details/${booking._id}`)}
-                  >
-                    <MdInfoOutline className="mr-1" />
+                <div className="mt-4 flex justify-end">
+                  <Button size="sm" variant="outline" icon={Info} onClick={() => navigate(`/booking-details/${booking._id}`)}>
                     View Details
-                  </button>
+                  </Button>
                 </div>
-              </div>
+              </Card>
             ))
           ) : (
-            <p className="text-gray-500 text-center">No bookings found.</p>
+            <EmptyState icon={CalendarX2} title="No bookings found" description="Your service bookings will show up here." />
           )}
         </div>
       </div>

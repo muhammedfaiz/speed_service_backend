@@ -1,7 +1,6 @@
 import nodemailer from 'nodemailer';
-import jwt from 'jsonwebtoken'; 
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import jwt from 'jsonwebtoken';
+import { v2 as cloudinary } from 'cloudinary';
 import paypal from '@paypal/checkout-server-sdk';
 export const generateOtp = ()=>{
     return Math.floor(100000+Math.random()*900000).toString();
@@ -107,31 +106,42 @@ export const verifyToken = (token)=>{
     return jwt.verify(token, process.env.JWT_SECRET);
 }
 
-const bucketName = process.env.BUCKET_NAME;
-const bucketRegion = process.env.BUCKET_REGION;;
-const accesKey = process.env.BUCKET_ACCESS_KEY;
-const secretAccessKey = process.env.BUCKET_SECRET_ACCESS_KEY;
-
-const s3 = new S3Client({
-    credentials:{
-        accessKeyId:accesKey,
-        secretAccessKey:secretAccessKey
-    },
-    region: bucketRegion
+// Image storage: Cloudinary (free tier) — replaces the old S3 setup.
+// Sign up free at cloudinary.com and set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY
+// and CLOUDINARY_API_SECRET in the server .env; until those are set, or if
+// Cloudinary is briefly unavailable, these helpers fail soft (return null)
+// instead of throwing, so the rest of a response still goes through.
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export const addFileToS3 = async(file,fileName)=>{
+// Our stored keys (from randomName) keep the original file extension, e.g.
+// "1234567_photo.png" — but Cloudinary always appends its own detected format
+// suffix on top of whatever public_id it's given, so uploading with the
+// extension still in the public_id produces an asset at "...photo.png.png".
+// Stripping the extension before talking to Cloudinary avoids that double
+// suffix; the DB-stored key itself is untouched, so no controller changes needed.
+// Delivery URLs still need that format appended explicitly, though — Cloudinary's
+// extension-less delivery isn't reliable for every format (confirmed AVIF 404s
+// without it), so getFile passes it back in via the `format` option instead of
+// leaving the URL bare.
+const stripExtension = (key) => key.replace(/\.[^./]+$/, '');
+const getExtension = (key) => key.match(/\.([^./]+)$/)?.[1];
+const FOLDER = 'speed-service';
+
+export const uploadFile = async(file,fileName)=>{
     try {
-        const params = {
-            Bucket: bucketName,
-            Key: fileName,
-            Body: file.buffer,
-            ContentType: file.mimetype,
-        }
-        const command = new PutObjectCommand(params);
-        return await s3.send(command);
+        const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+        return await cloudinary.uploader.upload(dataUri, {
+            public_id: stripExtension(fileName),
+            folder: FOLDER,
+            resource_type: 'image',
+        });
     } catch (error) {
-       throw new Error('Failed to add File: '+error.message); 
+       console.error('Cloudinary unavailable, skipping image upload:', error.message);
+       return null;
     }
 }
 
@@ -141,29 +151,22 @@ export const randomName = (file)=>{
 }
 
 export const getFile = async(image)=>{
+    if(!image) return null;
     try {
-        const getObjectParams = {
-            Bucket: bucketName,
-            Key: image,
-        }
-        const command = new GetObjectCommand(getObjectParams);
-        const url = await getSignedUrl(s3,command,{expiresIn:3600});
-        return url;
+        return cloudinary.url(`${FOLDER}/${stripExtension(image)}`, { secure: true, format: getExtension(image) });
     } catch (error) {
-        throw new Error("Error while retrieving file: "+error.message);
+        console.error('Cloudinary unavailable, skipping image retrieval:', error.message);
+        return null;
     }
 }
 
 export const removeFile = async(image)=>{
+    if(!image) return null;
     try {
-        const params = {
-            Bucket: bucketName,
-            Key: image,
-        }
-        const command = new DeleteObjectCommand(params);
-        return await s3.send(command);
+        return await cloudinary.uploader.destroy(`${FOLDER}/${stripExtension(image)}`);
     } catch (error) {
-        throw new Error("Error while removing file: "+error.message);
+        console.error('Cloudinary unavailable, skipping image removal:', error.message);
+        return null;
     }
 }
 

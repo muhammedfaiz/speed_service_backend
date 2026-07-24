@@ -3,26 +3,18 @@ import { useParams } from "react-router-dom";
 import userService from "../../services/userService";
 import Navbar from "../../components/user/Navbar";
 import {
-  FaCalendarAlt,
-  FaClock,
-  FaDollarSign,
-  FaUser,
-  FaHome,
-  FaCity,
-  FaFlag,
-  FaGlobe,
-  FaMailBulk,
-  FaClipboardList,
-  FaRegClock,
-  FaBriefcase,
-  FaStar,
-} from "react-icons/fa";
-import { BsChatText } from "react-icons/bs";
+  CalendarDays, Clock3, DollarSign, User as UserIcon, Home, MapPinned,
+  Flag, Globe2, Mail, ClipboardList, MessageCircle, Briefcase, Star, XCircle,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import Modal from "../../components/common/Modal";
-import { MdClose } from "react-icons/md";
+import Modal from "../../components/ui/Modal";
 import Chat from "../../components/common/Chat";
+import Card from "../../components/ui/Card";
+import Badge from "../../components/ui/Badge";
+import Button from "../../components/ui/Button";
+
+const STATUS_VARIANT = { Pending: "warning", Completed: "accent", Commited: "primary", Cancelled: "danger" };
 
 const BookingDetailsPage = () => {
   const { id } = useParams();
@@ -31,7 +23,7 @@ const BookingDetailsPage = () => {
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [review, setReview] = useState({ id: null, rating: 0, comment: "" });
   const [errors, setErrors] = useState({});
-  const [isChatOpen,setIsChatOpen]=useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     const fetchBooking = async () => {
@@ -44,7 +36,6 @@ const BookingDetailsPage = () => {
     };
     fetchBooking();
   }, [id, isChange]);
-
 
   const validateReview = () => {
     const errors = {};
@@ -64,8 +55,8 @@ const BookingDetailsPage = () => {
         text: "Once cancelled, you won't be able to undo this action.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
+        confirmButtonColor: "#2563EB",
+        cancelButtonColor: "#EF4444",
         confirmButtonText: "Yes, cancel it!",
       }).then(async (result) => {
         if (result.isConfirmed) {
@@ -82,12 +73,10 @@ const BookingDetailsPage = () => {
   };
 
   const handleReviewSubmit = async (e) => {
-    
     e.preventDefault();
     const validationErrors = validateReview();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      console.log(errors)
       return;
     }
     try {
@@ -106,271 +95,151 @@ const BookingDetailsPage = () => {
   return (
     <>
       <Navbar />
-      <div className="p-12">
-        <div className="text-left mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">
-            Booking Details
-          </h1>
-          <p className="text-sm text-gray-500">
-            Review all the information related to your booking below.
-          </p>
-        </div>
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Booking Info */}
-          <div className="border w-full lg:w-1/3 p-5 rounded-md bg-gray-50 shadow-md space-y-4">
-            <h2 className="text-lg font-semibold mb-4 text-gray-700">
-              Booking Info
-            </h2>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center text-sm font-medium text-gray-700">
-                <FaCalendarAlt className="mr-2 text-blue-500" /> Booked Date:
-              </span>
-              <span className="text-sm text-gray-600"> {booking?.date}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center text-sm font-medium text-gray-700">
-                <FaClock className="mr-2 text-blue-500" /> Booked Time:
-              </span>
-              <span className="text-sm text-gray-600">{booking?.time}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center text-sm font-medium text-gray-700">
-                <FaClipboardList className="mr-2 text-blue-500" /> Status:
-              </span>
-              <span
-                className={`text-sm font-semibold p-1 rounded ${
-                  booking.status == "Pending"
-                    ? "text-orange-900 bg-yellow-500"
-                    : booking.status == "Completed"
-                    ? "text-green-900 bg-green-500"
-                    : booking.status == "Commited"
-                    ? "text-blue-900 bg-blue-500"
-                    : "text-red-900 bg-red-500"
-                }`}
-              >
-                {booking?.status}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center text-sm font-medium text-gray-700">
-                <FaDollarSign className="mr-2 text-blue-500" /> Total Amount:
-              </span>
-              <span className="text-sm text-gray-600">
-                ${booking?.totalAmount}
-              </span>
-            </div>
-          </div>
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-bold text-fg font-display">Booking Details</h1>
+        <p className="mt-1 text-fg-muted">Review all the information related to your booking below.</p>
 
-          <div className="border w-full lg:w-1/3 p-5 rounded-md bg-gray-50 shadow-md space-y-4">
-            <h2 className="text-lg font-semibold mb-4 text-gray-700">
-              Service Provider Info
-            </h2>
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <Card hoverable={false}>
+            <h2 className="mb-4 font-semibold text-fg font-display">Booking Info</h2>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-fg-muted"><CalendarDays size={15} className="text-primary" /> Booked Date</span>
+                <span className="text-fg">{booking?.date}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-fg-muted"><Clock3 size={15} className="text-primary" /> Booked Time</span>
+                <span className="text-fg">{booking?.time}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-fg-muted"><ClipboardList size={15} className="text-primary" /> Status</span>
+                <Badge variant={STATUS_VARIANT[booking?.status] || "neutral"}>{booking?.status}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-fg-muted"><DollarSign size={15} className="text-primary" /> Total Amount</span>
+                <span className="font-semibold text-fg">${booking?.totalAmount}</span>
+              </div>
+            </div>
+          </Card>
+
+          <Card hoverable={false}>
+            <h2 className="mb-4 font-semibold text-fg font-display">Service Provider Info</h2>
             {booking?.employee ? (
               <>
-                <div className="flex justify-between items-center">
-                  <span className="flex items-center text-sm font-medium text-gray-700">
-                    <FaUser className="mr-2 text-blue-500" /> Name:
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {booking?.employee?.name}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="flex items-center text-sm font-medium text-gray-700">
-                    <FaBriefcase className="mr-2 text-blue-500" /> Designation:
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {booking?.category?.name}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="flex items-center text-sm font-medium text-gray-700">
-                    <FaRegClock className="mr-2 text-blue-500" /> Experience:
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {booking?.employee?.experience} years
-                  </span>
-                </div>
-                <div className="w-full flex justify-end items-baseline p-4">
-                  <button onClick={()=>setIsChatOpen(true)} className="ring-1 ring-primary-blue rounded-md px-3 py-2 text-primary-blue hover:bg-primary-blue hover:text-white transition-colors duration-100 flex items-center">
-                    <BsChatText className="mr-2" /> Chat
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="text-gray-600 text-sm">
-                The service provider has not yet been committed.
-              </div>
-            )}
-          </div>
-
-          <div className="border w-full lg:w-1/3 p-5 rounded-md bg-gray-50 shadow-md space-y-4">
-            <h2 className="text-lg font-semibold mb-4 text-gray-700">
-              Address Info
-            </h2>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center text-sm font-medium text-gray-700">
-                <FaHome className="mr-2 text-blue-500" /> Locality:
-              </span>
-              <span className="text-sm text-gray-600">
-                {booking?.address?.locality}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center text-sm font-medium text-gray-700">
-                <FaCity className="mr-2 text-blue-500" /> Place:
-              </span>
-              <span className="text-sm text-gray-600">
-                {booking?.address?.place}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center text-sm font-medium text-gray-700">
-                <FaFlag className="mr-2 text-blue-500" /> State:
-              </span>
-              <span className="text-sm text-gray-600">
-                {booking?.address?.state}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center text-sm font-medium text-gray-700">
-                <FaGlobe className="mr-2 text-blue-500" /> Country:
-              </span>
-              <span className="text-sm text-gray-600">
-                {booking?.address?.country}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center text-sm font-medium text-gray-700">
-                <FaMailBulk className="mr-2 text-blue-500" /> Pincode:
-              </span>
-              <span className="text-sm text-gray-600">
-                {booking?.address?.pincode}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-8 border p-5 rounded-md bg-gray-50 shadow-md">
-          <h2 className="text-lg font-semibold mb-4 text-gray-700">
-            Order Service
-          </h2>
-          <div className="space-y-4">
-            {booking.orderItems?.map((item) => (
-              <div key={item._id} className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <img
-                    src={item.imageUrl}
-                    alt="service-image"
-                    className="w-20 h-20 object-cover rounded-md mr-4"
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-lg font-medium text-gray-700">
-                      {item.item.name}
-                    </span>
-                    <span className="text-base text-gray-600">
-                      {item.quantity} units
-                    </span>
-                    <span className="text-gray-600 text-base">
-                      ${item.item.price}
-                    </span>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-fg-muted"><UserIcon size={15} className="text-primary" /> Name</span>
+                    <span className="text-fg">{booking?.employee?.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-fg-muted"><Briefcase size={15} className="text-primary" /> Designation</span>
+                    <span className="text-fg">{booking?.category?.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-fg-muted"><Clock3 size={15} className="text-primary" /> Experience</span>
+                    <span className="text-fg">{booking?.employee?.experience} years</span>
                   </div>
                 </div>
-                <div>
-                  {booking.status == "Completed" && (
-                    <span
-                      className="text-sm text-primary-blue hover:text-secondary-blue cursor-pointer lg:text-base"
-                      onClick={() => {
-                        setIsReviewOpen(true);
-                        setReview({ id: item.item._id });
-                      }}
-                    >
-                      Rate our service
-                    </span>
-                  )}
+                <Button variant="outline" size="sm" icon={MessageCircle} className="mt-4 w-full" onClick={() => setIsChatOpen(true)}>
+                  Chat
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-fg-muted">The service provider has not yet been committed.</p>
+            )}
+          </Card>
+
+          <Card hoverable={false}>
+            <h2 className="mb-4 font-semibold text-fg font-display">Address Info</h2>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-fg-muted"><Home size={15} className="text-primary" /> Locality</span>
+                <span className="text-fg">{booking?.address?.locality}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-fg-muted"><MapPinned size={15} className="text-primary" /> Place</span>
+                <span className="text-fg">{booking?.address?.place}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-fg-muted"><Flag size={15} className="text-primary" /> State</span>
+                <span className="text-fg">{booking?.address?.state}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-fg-muted"><Globe2 size={15} className="text-primary" /> Country</span>
+                <span className="text-fg">{booking?.address?.country}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-fg-muted"><Mail size={15} className="text-primary" /> Pincode</span>
+                <span className="text-fg">{booking?.address?.pincode}</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <Card hoverable={false} className="mt-6">
+          <h2 className="mb-4 font-semibold text-fg font-display">Order Service</h2>
+          <div className="space-y-4">
+            {booking.orderItems?.map((item) => (
+              <div key={item._id} className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <img src={item.imageUrl} alt="service" className="h-16 w-16 rounded-xl object-cover" />
+                  <div>
+                    <p className="font-medium text-fg">{item.item.name}</p>
+                    <p className="text-sm text-fg-muted">{item.quantity} units · ${item.item.price}</p>
+                  </div>
                 </div>
+                {booking.status == "Completed" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    icon={Star}
+                    onClick={() => {
+                      setIsReviewOpen(true);
+                      setReview({ id: item.item._id });
+                    }}
+                  >
+                    Rate
+                  </Button>
+                )}
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
-        <div className="mt-6 flex justify-end">
-          {booking.status !== "Completed" && booking.status !== "Cancelled" && (
-            <button
-              onClick={handleCancelBooking}
-              className="px-6 py-3 bg-red-500 text-white text-sm font-semibold rounded-md hover:bg-red-600 transition duration-300"
-            >
+        {booking.status !== "Completed" && booking.status !== "Cancelled" && (
+          <div className="mt-6 flex justify-end">
+            <Button variant="danger" icon={XCircle} onClick={handleCancelBooking}>
               Cancel Booking
-            </button>
-          )}
-        </div>
-      </div>
-      <Modal isOpen={isReviewOpen}>
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold mb-4 text-gray-700">
-            Add a Review
-          </h2>
-          <MdClose
-            onClick={() => setIsReviewOpen(false)}
-            className="cursor-pointer"
-          />
-        </div>
-        <form onSubmit={(e)=>handleReviewSubmit(e)} className="space-y-4 p-5">
-          <div className="flex items-center space-x-2">
-            <FaStar
-              className={`text-xl ${
-                review.rating >= 1 ? "text-yellow-500" : "text-gray-300"
-              }`}
-              onClick={() => setReview({ ...review, rating: 1 })}
-            />
-            <FaStar
-              className={`text-xl ${
-                review.rating >= 2 ? "text-yellow-500" : "text-gray-300"
-              }`}
-              onClick={() => setReview({ ...review, rating: 2 })}
-            />
-            <FaStar
-              className={`text-xl ${
-                review.rating >= 3 ? "text-yellow-500" : "text-gray-300"
-              }`}
-              onClick={() => setReview({ ...review, rating: 3 })}
-            />
-            <FaStar
-              className={`text-xl ${
-                review.rating >= 4 ? "text-yellow-500" : "text-gray-300"
-              }`}
-              onClick={() => setReview({ ...review, rating: 4 })}
-            />
-            <FaStar
-              className={`text-xl ${
-                review.rating >= 5 ? "text-yellow-500" : "text-gray-300"
-              }`}
-              onClick={() => setReview({ ...review, rating: 5 })}
-            />
+            </Button>
           </div>
-          {errors.rating && (
-            <p className="text-red-500 text-sm">{errors.rating}</p>
-          )}
+        )}
+      </div>
+
+      <Modal isOpen={isReviewOpen} onClose={() => setIsReviewOpen(false)} title="Add a Review">
+        <form onSubmit={handleReviewSubmit} className="space-y-4">
+          <div className="flex items-center gap-1.5">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button type="button" key={star} onClick={() => setReview({ ...review, rating: star })}>
+                <Star size={26} className={review.rating >= star ? "text-amber-500" : "text-slate-300"} fill={review.rating >= star ? "currentColor" : "none"} />
+              </button>
+            ))}
+          </div>
+          {errors.rating && <p className="text-sm text-red-500">{errors.rating}</p>}
           <textarea
-            className="w-full h-32 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-2xl border border-slate-200 p-3.5 text-sm shadow-soft outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary-50"
+            rows={4}
             placeholder="Write your review here..."
-            value={review.comment}
+            value={review.comment || ""}
             onChange={(e) => setReview({ ...review, comment: e.target.value })}
           />
-          {errors.comment && (
-            <p className="text-red-500 text-sm">{errors.comment}</p>
-          )}
+          {errors.comment && <p className="text-sm text-red-500">{errors.comment}</p>}
           <div className="flex justify-end">
-            <button
-              type="submit"
-              className="px-6 py-3 bg-primary-blue text-white text-sm font-semibold rounded-md hover:bg-secondary-blue transition duration-300"
-            >
-              Submit Review
-            </button>
+            <Button type="submit">Submit Review</Button>
           </div>
         </form>
       </Modal>
-     {booking?.employee && (<Chat isOpen={isChatOpen} setIsOpen={setIsChatOpen} receiver={booking.employee}/>)}
+
+      {booking?.employee && <Chat isOpen={isChatOpen} setIsOpen={setIsChatOpen} receiver={booking.employee} />}
     </>
   );
 };

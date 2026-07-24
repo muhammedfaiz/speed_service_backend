@@ -1,16 +1,31 @@
 import { useEffect, useState } from "react";
-import logo from "../../assets/logo-transparent.png";
-import Navbar from "../../components/admin/Navbar";
-import ProfileDropdown from "../../components/admin/ProfileDropdown";
 import { Line } from "react-chartjs-2";
+import { DollarSign, ShoppingBag, ShoppingCart } from "lucide-react";
 import { getDashboardDataService, getOrdersService } from "../../services/adminService";
 import "chart.js/auto";
+import AdminLayout from "../../components/admin/AdminLayout";
+import Card from "../../components/ui/Card";
+import Table from "../../components/ui/Table";
+import Pagination from "../../components/ui/Pagination";
+
+const chartOptions = (color) => ({
+  responsive: true,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { display: false }, ticks: { color: "#94A3B8", font: { size: 11 } } },
+    y: { grid: { color: "#F1F5F9" }, ticks: { color: "#94A3B8", font: { size: 11 } } },
+  },
+  elements: {
+    line: { borderColor: color, borderWidth: 2, tension: 0.35 },
+    point: { radius: 0, hoverRadius: 5, hoverBackgroundColor: color, hoverBorderColor: "#fff", hoverBorderWidth: 2 },
+  },
+});
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({});
   const [orders, setOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage] = useState(5); // Set rows per page to a fixed value
+  const rowsPerPage = 5;
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -28,12 +43,9 @@ const Dashboard = () => {
     fetchRecentOrders();
   }, []);
 
-  // Pagination logic
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentOrders = orders.slice(indexOfFirstRow, indexOfLastRow);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const salesData = {
     labels: dashboardData?.sales?.map((sale) => sale.day),
@@ -41,8 +53,7 @@ const Dashboard = () => {
       {
         label: "Sales Revenue",
         data: dashboardData?.sales?.map((sale) => sale.revenue),
-        backgroundColor: "rgba(76, 81, 191, 0.5)",
-        borderColor: "#4c51bf",
+        backgroundColor: "rgba(37, 99, 235, 0.08)",
         fill: true,
       },
     ],
@@ -54,116 +65,77 @@ const Dashboard = () => {
       {
         label: "Total Orders",
         data: dashboardData?.orders?.map((order) => order.count),
-        backgroundColor: "rgba(72, 187, 120, 0.5)",
-        borderColor: "#48bb78",
+        backgroundColor: "rgba(14, 165, 233, 0.08)",
         fill: true,
       },
     ],
   };
 
+  const columns = [
+    { key: "orderId", header: "Order ID" },
+    { key: "customer", header: "Customer", render: (row) => row.user.name },
+    { key: "services", header: "Services", render: (row) => row.orderItems.map((item) => item.item.name).join(", ") },
+    { key: "status", header: "Status" },
+    { key: "date", header: "Date", render: (row) => new Date(row.createdAt).toDateString() },
+  ];
+
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-gray-100">
-      <aside className="w-full lg:w-64 bg-gradient-to-b from-blue-600 to-indigo-950 text-white flex flex-col">
-        <div className="pl-10 pt-10 flex justify-center lg:justify-start">
-          <img src={logo} alt="speed service" className="w-36" />
-        </div>
-        <Navbar />
-      </aside>
-      <main className="flex-grow p-10 relative overflow-auto">
-        <div className="absolute top-4 right-4">
-          <ProfileDropdown />
-        </div>
+    <AdminLayout title="Dashboard" subtitle="Overview of your business performance">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <Card className="flex items-center gap-4">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-50 text-accent-600">
+            <DollarSign size={22} />
+          </span>
+          <div>
+            <p className="text-sm text-fg-muted">Total Revenue</p>
+            <p className="text-2xl font-bold text-fg font-display">${dashboardData?.totalRevenue}</p>
+          </div>
+        </Card>
+        <Card className="flex items-center gap-4">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary">
+            <ShoppingBag size={22} />
+          </span>
+          <div>
+            <p className="text-sm text-fg-muted">Total Sales</p>
+            <p className="text-2xl font-bold text-fg font-display">{dashboardData?.totalSales}</p>
+          </div>
+        </Card>
+        <Card className="flex items-center gap-4">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary-50 text-secondary">
+            <ShoppingCart size={22} />
+          </span>
+          <div>
+            <p className="text-sm text-fg-muted">Total Orders</p>
+            <p className="text-2xl font-bold text-fg font-display">{dashboardData?.totalOrders}</p>
+          </div>
+        </Card>
+      </div>
 
-        {/* KPIs Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700">Total Revenue</h3>
-            <p className="text-2xl font-bold text-green-500">${dashboardData?.totalRevenue}</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700">Total Sales</h3>
-            <p className="text-2xl font-bold text-blue-500">{dashboardData?.totalSales}</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700">Total Orders</h3>
-            <p className="text-2xl font-bold text-purple-500">{dashboardData?.totalOrders}</p>
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card hoverable={false}>
+          <h3 className="mb-4 font-semibold text-fg font-display">Sales Revenue</h3>
+          <Line data={salesData} options={chartOptions("#2563EB")} />
+        </Card>
+        <Card hoverable={false}>
+          <h3 className="mb-4 font-semibold text-fg font-display">Total Orders</h3>
+          <Line data={ordersData} options={chartOptions("#0EA5E9")} />
+        </Card>
+      </div>
+
+      <Card hoverable={false} padding="none" className="mt-6">
+        <h3 className="p-6 pb-0 font-semibold text-fg font-display">Recent Orders</h3>
+        <div className="p-6">
+          <Table columns={columns} data={currentOrders} rowKey="orderId" emptyTitle="No orders yet" />
+          <div className="mt-4 flex justify-end">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(orders.length / rowsPerPage)}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
-
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-10">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">Sales Revenue</h3>
-            <Line data={salesData} />
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">Total Orders</h3>
-            <Line data={ordersData} />
-          </div>
-        </div>
-
-        {/* Recent Orders Section */}
-        <div className="bg-white p-6 rounded-lg shadow-md mt-10">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Recent Orders</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 border-b-2 border-gray-200 text-left text-sm font-semibold text-gray-600">
-                    Order ID
-                  </th>
-                  <th className="px-4 py-2 border-b-2 border-gray-200 text-left text-sm font-semibold text-gray-600">
-                    Customer
-                  </th>
-                  <th className="px-4 py-2 border-b-2 border-gray-200 text-left text-sm font-semibold text-gray-600">
-                    Services
-                  </th>
-                  <th className="px-4 py-2 border-b-2 border-gray-200 text-left text-sm font-semibold text-gray-600">
-                    Status
-                  </th>
-                  <th className="px-4 py-2 border-b-2 border-gray-200 text-left text-sm font-semibold text-gray-600">
-                    Date
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentOrders.map((order, index) => (
-                  <tr key={index}>
-                    <td className="px-4 py-2 border-b border-gray-200 text-sm text-gray-700">{order.orderId}</td>
-                    <td className="px-4 py-2 border-b border-gray-200 text-sm text-gray-700">{order.user.name}</td>
-                    <td className="px-4 py-2 border-b border-gray-200 text-sm text-gray-700">
-                      {order.orderItems.map((item) => item.item.name).join(", ")}
-                    </td>
-                    <td className="px-4 py-2 border-b border-gray-200 text-sm text-gray-700">{order.status}</td>
-                    <td className="px-4 py-2 border-b border-gray-200 text-sm text-gray-700">
-                      {new Date(order.createdAt).toDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Controls */}
-          <div className="flex justify-end mt-4">
-            <nav>
-              <ul className="flex space-x-2">
-                {Array.from({ length: Math.ceil(orders.length / rowsPerPage) }, (_, index) => (
-                  <li key={index}>
-                    <button
-                      onClick={() => paginate(index + 1)}
-                      className={`px-3 py-1 rounded-lg ${currentPage === index + 1 ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
-                    >
-                      {index + 1}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </main>
-    </div>
+      </Card>
+    </AdminLayout>
   );
 };
 

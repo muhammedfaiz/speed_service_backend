@@ -62,13 +62,13 @@ A comprehensive home service booking application where users can connect with se
 
    - **Frontend**:
      ```bash
-     cd frontend
+     cd client
      npm install
      ```
 
    - **Backend**:
      ```bash
-     cd ../backend
+     cd ../server
      npm install
      ```
 

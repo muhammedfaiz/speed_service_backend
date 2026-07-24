@@ -1,10 +1,30 @@
-import { NavLink } from "react-router-dom";
-import logo from "../../assets/logo-transparent.png";
+import { NavLink, Link } from "react-router-dom";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { AnimatePresence, motion } from "framer-motion";
+import { Bell, Menu, LogOut, User as UserIcon, ShoppingCart, CalendarCheck, Zap } from "lucide-react";
 import { logout } from "../../features/userSlice";
-import { FaBell } from "react-icons/fa";
 import { useNotificationContext } from "../../context/NotificationContext";
+import Drawer from "../ui/Drawer";
+import Avatar from "../ui/Avatar";
+import Button from "../ui/Button";
+
+const NAV_LINKS = [
+  { label: "Home", to: "/" },
+  { label: "Services", to: "/services" },
+  { label: "Cart", to: "/cart" },
+  { label: "Bookings", to: "/bookings" },
+];
+
+const navLinkClass = ({ isActive }) =>
+  `rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+    isActive ? "bg-primary-50 text-primary" : "text-fg-muted hover:text-fg hover:bg-slate-100"
+  }`;
+
+const mobileNavLinkClass = ({ isActive }) =>
+  `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+    isActive ? "bg-primary-50 text-primary" : "text-fg-muted hover:bg-slate-100"
+  }`;
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,302 +37,188 @@ const Navbar = () => {
 
   const handleLogout = () => {
     dispatch(logout());
+    setProfileMenuOpen(false);
   };
 
   const toggleNotifications = () => {
     setNotificationsOpen(!notificationsOpen);
+    setProfileMenuOpen(false);
   };
 
   return (
-    <div className="sticky top-0 z-50">
-      <nav className="bg-black shadow">
-        <div className="px-8 mx-auto max-w-7xl">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <a className="flex-shrink-0" href="/">
-                <img className="w-32" src={logo} alt="Speed Service" />
-              </a>
-              <div className="hidden md:block">
-                <div className="flex items-baseline ml-10 space-x-4">
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? "text-white px-3 py-2 rounded-md text-sm font-medium"
-                        : "text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                    }
-                    to="/"
-                  >
-                    Home
-                  </NavLink>
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? "text-white px-3 py-2 rounded-md text-sm font-medium"
-                        : "text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                    }
-                    to="/services"
-                  >
-                    Services
-                  </NavLink>
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? "text-white px-3 py-2 rounded-md text-sm font-medium"
-                        : "text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                    }
-                    to="/cart"
-                  >
-                    Cart
-                  </NavLink>
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? "text-white px-3 py-2 rounded-md text-sm font-medium"
-                        : "text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                    }
-                    to="/bookings"
-                  >
-                    Bookings
-                  </NavLink>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <div className="relative ml-4">
-                <button
-                  onClick={toggleNotifications}
-                  className="relative p-2 text-white hover:text-gray-300"
-                >
-                  <FaBell className="text-xl" />
-                  {userNotifications.length > 0 && (
-                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
-                      {userNotifications.length}
-                    </span>
-                  )}
-                </button>
+    <motion.nav
+      initial={{ y: -16, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="sticky top-0 z-50 glass shadow-glass"
+    >
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="flex items-center gap-2 text-lg font-bold text-fg font-display">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl gradient-brand">
+            <Zap size={18} className="text-white" fill="currentColor" />
+          </span>
+          <span className="hidden sm:inline">Speed Service</span>
+        </Link>
 
-                {notificationsOpen && (
-                  <div className="absolute right-0 mt-2 md:w-72 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                    <div className="p-4">
-                      <h3 className="text-lg font-semibold">Notifications</h3>
-                      <ul className="mt-4 space-y-2">
-                        {userNotifications.length > 0 ? (
-                          userNotifications.map((notification, index) => (
-                            <li
-                              key={index}
-                              className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-                            >
-                              {notification}
-                            </li>
-                          ))
-                        ) : (
-                          <li className="text-gray-500">
-                            No new notifications
-                          </li>
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="relative ml-3">
-                <div className="relative inline-block text-left">
-                  {user && user.url !== undefined ? (
-                    <div>
-                      <button
-                        type="button"
-                        className="flex items-center justify-center py-2 px-4"
-                        id="options-menu"
-                        onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                      >
-                        <img
-                          src={user?.url}
-                          alt="profile"
-                          className="w-10 rounded-full "
-                        />
-                      </button>
-                    </div>
-                  ) : (
-                    <div>
-                      <button
-                        type="button"
-                        className="flex items-center justify-center w-full rounded-lg  px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-50 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-500"
-                        id="options-menu"
-                        onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                      >
-                        <svg
-                          width="20"
-                          fill="currentColor"
-                          height="20"
-                          className="text-white"
-                          viewBox="0 0 1792 1792"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M1523 1339q-22-155-87.5-257.5t-184.5-118.5q-67 74-159.5 115.5t-195.5 41.5-195.5-41.5-159.5-115.5q-119 16-184.5 118.5t-87.5 257.5q106 150 271 237.5t356 87.5 356-87.5 271-237.5zm-243-699q0-159-112.5-271.5t-271.5-112.5-271.5 112.5-112.5 271.5 112.5 271.5 271.5 112.5 271.5-112.5 112.5-271.5zm512 256q0 182-71 347.5t-190.5 286-285.5 191.5-349 71q-182 0-348-71t-286-191-191-286-71-348 71-348 191-286 286-191 348-71 348 71 286 191 191 286 71 348z"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-                  {profileMenuOpen && (
-                    <div className="absolute right-0 w-56 mt-2 origin-top-right rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
-                      {user ? (
-                        <div
-                          className="py-1 "
-                          role="menu"
-                          aria-orientation="vertical"
-                          aria-labelledby="options-menu"
-                        >
-                          <NavLink
-                            to="/profile"
-                            className={({ isActive }) =>
-                              isActive
-                                ? "block px-4 py-2 text-md text-white bg-gray-600"
-                                : "block px-4 py-2 text-md text-gray-100 hover:text-white hover:bg-gray-600"
-                            }
-                            role="menuitem"
-                          >
-                            <span className="flex flex-col">
-                              <span>Profile</span>
-                            </span>
-                          </NavLink>
-                          <NavLink
-                            onClick={() => handleLogout()}
-                            className="block px-4 py-2 text-md text-gray-100 hover:text-white hover:bg-gray-600"
-                            role="menuitem"
-                          >
-                            <span className="flex flex-col">
-                              <span>Logout</span>
-                            </span>
-                          </NavLink>
-                        </div>
-                      ) : (
-                        <div
-                          className="py-1 "
-                          role="menu"
-                          aria-orientation="vertical"
-                          aria-labelledby="options-menu"
-                        >
-                          <NavLink
-                            to="/login"
-                            className={({ isActive }) =>
-                              isActive
-                                ? "block px-4 py-2 text-md text-white bg-gray-600"
-                                : "block px-4 py-2 text-md text-gray-100 hover:text-white hover:bg-gray-600"
-                            }
-                            role="menuitem"
-                          >
-                            <span className="flex flex-col">
-                              <span>Login</span>
-                            </span>
-                          </NavLink>
-                          <NavLink
-                            to="/signup"
-                            className={({ isActive }) =>
-                              isActive
-                                ? "block px-4 py-2 text-md text-white bg-gray-600"
-                                : "block px-4 py-2 text-md text-gray-100 hover:text-white hover:bg-gray-600"
-                            }
-                            role="menuitem"
-                          >
-                            <span className="flex flex-col">
-                              <span>Sign Up</span>
-                            </span>
-                          </NavLink>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="-mr-2 flex md:hidden">
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center justify-center p-2 text-gray-400 rounded-md hover:text-white hover:bg-gray-700 focus:outline-none focus:bg-gray-700 focus:text-white"
-              >
-                <svg
-                  className="block w-6 h-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  />
-                </svg>
-                <svg
-                  className="hidden w-6 h-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
+        <div className="hidden items-center gap-1 md:flex">
+          {NAV_LINKS.map((link) => (
+            <NavLink key={link.to} to={link.to} className={navLinkClass}>
+              {link.label}
+            </NavLink>
+          ))}
         </div>
 
-        {isOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              <NavLink
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-white block px-3 py-2 rounded-md text-base font-medium"
-                    : "text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-                }
-                to="/"
-              >
-                Home
-              </NavLink>
-              <NavLink
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-white block px-3 py-2 rounded-md text-base font-medium"
-                    : "text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-                }
-                to="/services"
-              >
-                Services
-              </NavLink>
-              <NavLink
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-white block px-3 py-2 rounded-md text-base font-medium"
-                    : "text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-                }
-                to="/cart"
-              >
-                Cart
-              </NavLink>
-              <NavLink
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-white block px-3 py-2 rounded-md text-base font-medium"
-                    : "text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-                }
-                to="/bookings"
-              >
-                Bookings
-              </NavLink>
-            </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={toggleNotifications}
+              aria-label="Notifications"
+              className="relative rounded-full p-2.5 text-fg-muted transition-colors hover:bg-slate-100 hover:text-fg"
+            >
+              <Bell size={20} />
+              {userNotifications.length > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {userNotifications.length}
+                </span>
+              )}
+            </button>
+
+            <AnimatePresence>
+              {notificationsOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-72 rounded-2xl border border-slate-100 bg-card p-4 shadow-elevated sm:w-80"
+                >
+                  <h3 className="text-sm font-semibold text-fg font-display">Notifications</h3>
+                  <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto">
+                    {userNotifications.length > 0 ? (
+                      userNotifications.map((notification, index) => (
+                        <li key={index} className="rounded-xl bg-slate-50 p-3 text-sm text-fg">
+                          {notification}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="py-4 text-center text-sm text-fg-muted">No new notifications</li>
+                    )}
+                  </ul>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        )}
-      </nav>
-    </div>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setProfileMenuOpen(!profileMenuOpen);
+                setNotificationsOpen(false);
+              }}
+              className="flex items-center justify-center rounded-full transition-transform hover:scale-105"
+            >
+              {user ? (
+                <Avatar src={user.url} name={user.name} size="sm" ring />
+              ) : (
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-fg-muted">
+                  <UserIcon size={18} />
+                </span>
+              )}
+            </button>
+
+            <AnimatePresence>
+              {profileMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-slate-100 bg-card p-1.5 shadow-elevated"
+                >
+                  {user ? (
+                    <>
+                      <NavLink
+                        to="/profile"
+                        onClick={() => setProfileMenuOpen(false)}
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-fg transition-colors hover:bg-slate-100"
+                      >
+                        <UserIcon size={16} /> Profile
+                      </NavLink>
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                      >
+                        <LogOut size={16} /> Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <NavLink
+                        to="/login"
+                        onClick={() => setProfileMenuOpen(false)}
+                        className="block rounded-xl px-3 py-2.5 text-sm font-medium text-fg transition-colors hover:bg-slate-100"
+                      >
+                        Login
+                      </NavLink>
+                      <NavLink
+                        to="/signup"
+                        onClick={() => setProfileMenuOpen(false)}
+                        className="block rounded-xl px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary-50"
+                      >
+                        Sign Up
+                      </NavLink>
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <button
+            onClick={() => setIsOpen(true)}
+            aria-label="Open menu"
+            className="rounded-full p-2.5 text-fg-muted transition-colors hover:bg-slate-100 hover:text-fg md:hidden"
+          >
+            <Menu size={20} />
+          </button>
+        </div>
+      </div>
+
+      <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title="Menu">
+        <div className="flex flex-col gap-1">
+          <NavLink to="/" onClick={() => setIsOpen(false)} className={mobileNavLinkClass} end>
+            <Zap size={18} /> Home
+          </NavLink>
+          <NavLink to="/services" onClick={() => setIsOpen(false)} className={mobileNavLinkClass}>
+            <CalendarCheck size={18} /> Services
+          </NavLink>
+          <NavLink to="/cart" onClick={() => setIsOpen(false)} className={mobileNavLinkClass}>
+            <ShoppingCart size={18} /> Cart
+          </NavLink>
+          <NavLink to="/bookings" onClick={() => setIsOpen(false)} className={mobileNavLinkClass}>
+            <CalendarCheck size={18} /> Bookings
+          </NavLink>
+        </div>
+
+        <div className="mt-6 border-t border-slate-100 pt-6">
+          {user ? (
+            <Button variant="danger" icon={LogOut} className="w-full" onClick={handleLogout}>
+              Logout
+            </Button>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <Button to="/login" variant="outline" className="w-full" onClick={() => setIsOpen(false)}>
+                Login
+              </Button>
+              <Button to="/signup" className="w-full" onClick={() => setIsOpen(false)}>
+                Sign Up
+              </Button>
+            </div>
+          )}
+        </div>
+      </Drawer>
+    </motion.nav>
   );
 };
 

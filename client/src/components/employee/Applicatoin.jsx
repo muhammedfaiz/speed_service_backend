@@ -2,6 +2,10 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { UserPlus, UploadCloud, FileCheck2 } from "lucide-react";
+import Card from "../ui/Card";
+import Input from "../ui/Input";
+import Button from "../ui/Button";
 
 const Application = () => {
   const [data, setData] = useState({
@@ -14,7 +18,9 @@ const Application = () => {
   });
   const [designations, setDesignations] = useState([]);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
   useEffect(() => {
     const fetchDesignation = async () => {
       const response = await axios.get(
@@ -53,6 +59,7 @@ const Application = () => {
         return;
       }
       setErrors({});
+      setLoading(true);
       const formData = new FormData();
       for (let key in data) {
         formData.append(key, data[key]);
@@ -62,170 +69,86 @@ const Application = () => {
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-      console.log(response);
       if (response.status == 200) {
         toast.success("Application Submitted!!");
         navigate("/employee/success");
       }
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <section className="max-w-4xl p-6 mx-auto rounded-md shadow-md bg-gray-800">
-      <h1 className="text-xl font-bold capitalize text-white">
-        Employee Application
-      </h1>
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
-          <div>
-            <label className="text-gray-200" htmlFor="username">
-              Name
-            </label>
-            <input
-              id="username"
-              name="name"
-              type="text"
-              onChange={handleChange}
-              className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"
-            />
-            {errors.name && (
-              <p className="text-red-500 text-xs mt-1">{errors.name}</p>
-            )}
-          </div>
+    <Card hoverable={false} padding="lg" className="mx-auto max-w-2xl !rounded-3xl">
+      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary">
+        <UserPlus size={22} />
+      </span>
+      <h1 className="mt-5 text-2xl font-bold text-fg font-display">Employee Application</h1>
+      <p className="mt-1.5 text-sm text-fg-muted">Apply to become a verified Speed Service professional.</p>
 
-          <div>
-            <label className="text-gray-200" htmlFor="email">
-              Email Address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              onChange={handleChange}
-              className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"
-            />
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-            )}
-          </div>
-
-          <div>
-            <label
-              className="text-gray-200"
-              htmlFor="designation"
-            >
-              Designation
-            </label>
-            <select
-              id="designation"
-              name="designation"
-              onChange={handleChange}
-              className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"
-            >
-              <option value="">Select a designation</option>
-              {designations?.categories?.map((category, index) => (
-                <option key={index} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {errors.designation && (
-              <p className="text-red-500 text-xs mt-1">{errors.designation}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-gray-200" htmlFor="phone">
-              Phone
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              onChange={handleChange}
-              type="text"
-              className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"
-            />
-            {errors.phone && (
-              <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
-            )}
-          </div>
-          <div>
-            <label
-              className="text-gray-200"
-              htmlFor="experience"
-            >
-              Experience
-            </label>
-            <input
-              id="experience"
-              name="experience"
-              onChange={handleChange}
-              type="text"
-              className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"
-            />
-            {errors.experience && (
-              <p className="text-red-500 text-xs mt-1">{errors.experience}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-white">
-              Image
-            </label>
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-              <div className="space-y-1 text-center">
-                <svg
-                  className="mx-auto h-12 w-12 text-white"
-                  stroke="currentColor"
-                  fill="none"
-                  viewBox="0 0 48 48"
-                  aria-hidden="true"
-                >
-                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" />
-                </svg>
-                <div className=" text-sm text-gray-600">
-                  <p className="text-slate-300 mb-2">Upload your documents.</p>
-                  <label
-                    htmlFor="file-upload"
-                    className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
-                  >
-                    <span className="p-3">Upload a file</span>
-                    <input
-                      id="file-upload"
-                      name="proof"
-                      onChange={handleChange}
-                      type="file"
-                      className="sr-only"
-                    />
-                  </label>
-                </div>
-              </div>
-            </div>
-            {errors.proof && (
-              <p className="text-red-500 text-xs mt-1">{errors.proof}</p>
-            )}
-          </div>
-          <div>
-            <Link
-              to="/employee/login"
-              className="inline-flex items-center text-xs font-thin text-center text-gray-100 hover:text-white"
-            >
-              <span className="text-base font-semibold">
-                Already providing service?
-              </span>
-            </Link>
-          </div>
+      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Input label="Full name" name="name" onChange={handleChange} error={errors.name} />
+          <Input label="Email address" name="email" type="email" onChange={handleChange} error={errors.email} />
+          <Input label="Phone" name="phone" onChange={handleChange} error={errors.phone} />
+          <Input label="Experience (years)" name="experience" onChange={handleChange} error={errors.experience} />
         </div>
 
-        <div className="flex justify-end mt-6">
-          <button className="px-6 py-2 leading-5 text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-700 focus:outline-none focus:bg-gray-600 font-semibold">
+        <div>
+          <select
+            name="designation"
+            onChange={handleChange}
+            className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-fg shadow-soft outline-none transition-colors focus:ring-4 ${
+              errors.designation
+                ? "border-red-300 focus:ring-red-50"
+                : "border-slate-200 focus:border-primary/50 focus:ring-primary-50"
+            }`}
+          >
+            <option value="">Select a designation</option>
+            {designations?.categories?.map((category) => (
+              <option key={category._id} value={category._id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          {errors.designation && <p className="mt-1.5 text-xs text-red-500">{errors.designation}</p>}
+        </div>
+
+        <div>
+          <label
+            htmlFor="file-upload"
+            className={`flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-6 py-8 text-center transition-colors hover:bg-slate-50 ${
+              errors.proof ? "border-red-300" : "border-slate-200"
+            }`}
+          >
+            {data.proof ? (
+              <>
+                <FileCheck2 size={28} className="text-accent-600" />
+                <span className="text-sm font-medium text-fg">{data.proof.name}</span>
+              </>
+            ) : (
+              <>
+                <UploadCloud size={28} className="text-fg-subtle" />
+                <span className="text-sm text-fg-muted">Upload your proof document</span>
+              </>
+            )}
+            <input id="file-upload" name="proof" onChange={handleChange} type="file" className="sr-only" />
+          </label>
+          {errors.proof && <p className="mt-1.5 text-xs text-red-500">{errors.proof}</p>}
+        </div>
+
+        <div className="flex items-center justify-between pt-2">
+          <Link to="/employee/login" className="text-sm font-medium text-primary hover:text-primary-700">
+            Already providing service?
+          </Link>
+          <Button type="submit" loading={loading}>
             Apply
-          </button>
+          </Button>
         </div>
       </form>
-    </section>
+    </Card>
   );
 };
 

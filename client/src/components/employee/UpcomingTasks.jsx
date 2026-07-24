@@ -1,52 +1,65 @@
-import { useEffect, useState } from 'react';
-import { FaCheck, FaWrench } from 'react-icons/fa';
-import { getTasks, taskComplete } from '../../services/employeeService';
-import {toast} from "react-toastify";
+import { useEffect, useState } from "react";
+import { Wrench, Check, CalendarClock } from "lucide-react";
+import { getTasks, taskComplete } from "../../services/employeeService";
+import { toast } from "react-toastify";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+import EmptyState from "../ui/EmptyState";
 
 const UpcomingTasks = () => {
-  const [tasks,setTasks]=useState([]);
-  const [isChange,setIsChange]=useState(false);
+  const [tasks, setTasks] = useState([]);
+  const [isChange, setIsChange] = useState(false);
 
-  useEffect(()=>{
+  useEffect(() => {
     const fetchTasks = async () => {
       const data = await getTasks();
       setTasks(data.tasks);
     };
     fetchTasks();
-  },[isChange])
+  }, [isChange]);
 
-  async function handleComplete(id){
+  async function handleComplete(id) {
     const response = await taskComplete(id);
-    if(response.status==200){
+    if (response.status == 200) {
       setIsChange(!isChange);
       toast.success(response.data.message);
     }
   }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow ease-in-out duration-300">
-      <h3 className="text-xl font-semibold mb-4">Upcoming Tasks</h3>
-      <ul className="space-y-4">
-        {tasks.map(task => (
-          <li key={task._id} className="flex justify-between items-center border-b pb-4">
-            <div className="flex items-center space-x-3">
-              <FaWrench className="text-gray-700 text-2xl" />
-              <div>
-                <p className="font-medium">{task.user.name}</p>
-                <p className="text-sm text-gray-500">Task: {task.orderItems.map((item,index)=>(
-                  <span key={item._id}>{item.item.name} {index < task.orderItems.length - 1 ? ", " : ""}</span>
-                ))}</p>
-                <p className="text-sm text-gray-500">Due: {task.date}</p>
+    <Card hoverable={false}>
+      <h3 className="text-lg font-semibold text-fg font-display">Upcoming Tasks</h3>
+      {tasks.length === 0 ? (
+        <EmptyState icon={CalendarClock} title="No upcoming tasks" description="Accepted bookings will show up here." />
+      ) : (
+        <ul className="mt-4 divide-y divide-slate-100">
+          {tasks.map((task) => (
+            <li key={task._id} className="flex items-center justify-between gap-4 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary">
+                  <Wrench size={18} />
+                </span>
+                <div>
+                  <p className="font-medium text-fg">{task.user.name}</p>
+                  <p className="text-sm text-fg-muted">
+                    {task.orderItems.map((item, index) => (
+                      <span key={item._id}>
+                        {item.item.name}
+                        {index < task.orderItems.length - 1 ? ", " : ""}
+                      </span>
+                    ))}
+                  </p>
+                  <p className="text-xs text-fg-subtle">Due: {task.date}</p>
+                </div>
               </div>
-            </div>
-            <button onClick={()=>handleComplete(task._id)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 flex items-center space-x-2">
-              <FaCheck />
-              <span>Complete</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
+              <Button size="sm" icon={Check} onClick={() => handleComplete(task._id)}>
+                Complete
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 };
 

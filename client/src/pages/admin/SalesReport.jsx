@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
-import logo from "../../assets/logo-transparent.png";
-import Navbar from "../../components/admin/Navbar";
-import ProfileDropdown from "../../components/admin/ProfileDropdown";
+import { DollarSign, ShoppingBag, ShoppingCart, Download, CalendarRange } from "lucide-react";
 import { salesDataService } from "../../services/adminService";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import * as XLSX from "xlsx";
+import AdminLayout from "../../components/admin/AdminLayout";
+import Card from "../../components/ui/Card";
+import Table from "../../components/ui/Table";
+import Pagination from "../../components/ui/Pagination";
+import Button from "../../components/ui/Button";
+
+const datePickerClass =
+  "w-full sm:w-40 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-soft outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary-50";
 
 const SalesReport = () => {
   const [salesData, setSalesData] = useState({});
@@ -15,7 +21,7 @@ const SalesReport = () => {
   const [minDate, setMinDate] = useState(null);
   const [maxDate, setMaxDate] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage] = useState(5);
+  const rowsPerPage = 5;
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -25,9 +31,7 @@ const SalesReport = () => {
 
       if (data.salesData.salesPerDay?.length > 0) {
         const firstOrderDate = new Date(data.salesData.salesPerDay[0].day);
-        const lastOrderDate = new Date(
-          data.salesData.salesPerDay[data.salesData.salesPerDay.length - 1].day
-        );
+        const lastOrderDate = new Date(data.salesData.salesPerDay[data.salesData.salesPerDay.length - 1].day);
         lastOrderDate.setHours(23, 59, 59, 999);
         setMinDate(firstOrderDate);
         setMaxDate(lastOrderDate);
@@ -54,8 +58,6 @@ const SalesReport = () => {
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredSalesData?.slice(indexOfFirstRow, indexOfLastRow);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredSalesData);
     const workbook = XLSX.utils.book_new();
@@ -63,157 +65,89 @@ const SalesReport = () => {
     XLSX.writeFile(workbook, "SalesReport.xlsx");
   };
 
+  const columns = [
+    { key: "day", header: "Date" },
+    { key: "totalSales", header: "Total Sales" },
+    { key: "totalOrders", header: "Total Orders" },
+    { key: "totalRevenue", header: "Total Revenue", render: (row) => `$${row.totalRevenue}` },
+  ];
+
   return (
-    <div className="flex h-screen bg-gray-100">
-      <aside className="w-64 bg-gradient-to-b from-blue-600 to-indigo-950 text-white flex flex-col h-screen">
-        <div className="pl-10 pt-10 flex justify-center lg:justify-start">
-          <img src={logo} alt="speed service" className="w-36" />
-        </div>
-        <Navbar />
-      </aside>
+    <AdminLayout title="Sales Report" subtitle="Overview of recent sales.">
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <CalendarRange size={18} className="text-fg-subtle" />
+        <DatePicker
+          selected={startDate}
+          onChange={(date) => setStartDate(date)}
+          selectsStart
+          startDate={startDate}
+          endDate={endDate}
+          minDate={minDate}
+          maxDate={maxDate}
+          placeholderText="Start Date"
+          className={datePickerClass}
+        />
+        <DatePicker
+          selected={endDate}
+          onChange={(date) => setEndDate(date)}
+          selectsEnd
+          startDate={startDate}
+          endDate={endDate}
+          minDate={startDate || minDate}
+          placeholderText="End Date"
+          className={datePickerClass}
+        />
+      </div>
 
-      <main className="flex-grow p-6 relative overflow-auto">
-        <div className="absolute top-4 right-4">
-          <ProfileDropdown />
-        </div>
-
-        <div className="max-w-4xl mx-auto">
-          <div className="text-left mb-6">
-            <h1 className="text-2xl font-semibold text-gray-800">
-              Sales Report
-            </h1>
-            <p className="text-gray-500 text-sm">Overview of recent sales.</p>
+      <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <Card className="flex items-center gap-4">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-50 text-accent-600">
+            <DollarSign size={22} />
+          </span>
+          <div>
+            <p className="text-sm text-fg-muted">Total Revenue</p>
+            <p className="text-2xl font-bold text-fg font-display">${salesData?.totalRevenue}</p>
           </div>
+        </Card>
+        <Card className="flex items-center gap-4">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary">
+            <ShoppingBag size={22} />
+          </span>
+          <div>
+            <p className="text-sm text-fg-muted">Total Sales</p>
+            <p className="text-2xl font-bold text-fg font-display">{salesData?.totalSales}</p>
+          </div>
+        </Card>
+        <Card className="flex items-center gap-4">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary-50 text-secondary">
+            <ShoppingCart size={22} />
+          </span>
+          <div>
+            <p className="text-sm text-fg-muted">Total Orders</p>
+            <p className="text-2xl font-bold text-fg font-display">{salesData?.totalOrders}</p>
+          </div>
+        </Card>
+      </div>
 
-          <div className="flex space-x-4 mb-8">
-            <DatePicker
-              selected={startDate}
-              onChange={(date) => setStartDate(date)}
-              selectsStart
-              startDate={startDate}
-              endDate={endDate}
-              minDate={minDate}
-              maxDate={maxDate}
-              placeholderText="Start Date"
-              className="p-2 border border-gray-300 rounded"
+      <Card hoverable={false} padding="none">
+        <div className="flex items-center justify-between p-6 pb-0">
+          <h3 className="font-semibold text-fg font-display">Sales Details</h3>
+          <Button size="sm" icon={Download} onClick={exportToExcel}>
+            Download Report
+          </Button>
+        </div>
+        <div className="p-6">
+          <Table columns={columns} data={currentRows || []} rowKey="day" emptyTitle="No sales data" />
+          <div className="mt-4 flex justify-end">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.ceil((filteredSalesData?.length || 0) / rowsPerPage)}
+              onPageChange={setCurrentPage}
             />
-            <DatePicker
-              selected={endDate}
-              onChange={(date) => setEndDate(date)}
-              selectsEnd
-              startDate={startDate}
-              endDate={endDate}
-              minDate={startDate || minDate}
-              placeholderText="End Date"
-              className="p-2 border border-gray-300 rounded"
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="bg-white p-4 rounded-lg shadow-md text-center">
-              <h3 className="text-md font-semibold text-gray-700">
-                Total Revenue
-              </h3>
-              <p className="text-2xl font-bold text-green-500">
-                ${salesData?.totalRevenue}
-              </p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-md text-center">
-              <h3 className="text-md font-semibold text-gray-700">
-                Total Sales
-              </h3>
-              <p className="text-2xl font-bold text-blue-500">
-                {salesData?.totalSales}
-              </p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-md text-center">
-              <h3 className="text-md font-semibold text-gray-700">
-                Total Orders
-              </h3>
-              <p className="text-2xl font-bold text-purple-500">
-                {salesData?.totalOrders}
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white shadow-md rounded-lg p-4">
-            <div className="flex justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-700">
-                Sales Details
-              </h2>
-              <button
-                onClick={exportToExcel}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
-              >
-                Download Report
-              </button>
-            </div>
-            <table className="w-full text-left table-auto">
-              <thead>
-                <tr>
-                  <th className="px-2 py-2 border-b border-gray-200">Date</th>
-                  <th className="px-2 py-2 border-b border-gray-200">
-                    Total Sales
-                  </th>
-                  <th className="px-2 py-2 border-b border-gray-200">
-                    Total Orders
-                  </th>
-                  <th className="px-2 py-2 border-b border-gray-200">
-                    Total Revenue
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows?.map((data, index) => (
-                  <tr key={index}>
-                    <td className="px-2 py-2 border-b border-gray-200">
-                      {data.day}
-                    </td>
-                    <td className="px-2 py-2 border-b border-gray-200">
-                      {data.totalSales}
-                    </td>
-                    <td className="px-2 py-2 border-b border-gray-200">
-                      {data.totalOrders}
-                    </td>
-                    <td className="px-2 py-2 border-b border-gray-200">
-                      ${data.totalRevenue}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <div className="flex justify-end mt-4">
-              <nav>
-                <ul className="flex space-x-2">
-                  {Array.from(
-                    {
-                      length: Math.ceil(
-                        filteredSalesData?.length / rowsPerPage
-                      ),
-                    },
-                    (_, index) => (
-                      <li key={index}>
-                        <button
-                          onClick={() => paginate(index + 1)}
-                          className={`px-3 py-1 rounded-lg ${
-                            currentPage === index + 1
-                              ? "bg-blue-500 text-white"
-                              : "bg-gray-200 text-gray-700"
-                          }`}
-                        >
-                          {index + 1}
-                        </button>
-                      </li>
-                    )
-                  )}
-                </ul>
-              </nav>
-            </div>
           </div>
         </div>
-      </main>
-    </div>
+      </Card>
+    </AdminLayout>
   );
 };
 

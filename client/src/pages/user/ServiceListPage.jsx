@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Search, Star, SearchX } from "lucide-react";
 import Footer from "../../components/user/Footer";
 import Navbar from "../../components/user/Navbar";
 import userService from "../../services/userService";
+import Card from "../../components/ui/Card";
+import Skeleton from "../../components/ui/Skeleton";
+import Pagination from "../../components/ui/Pagination";
+import EmptyState from "../../components/ui/EmptyState";
 
-const ITEMS_PER_PAGE = 8; // Adjust the number of items per page
+const ITEMS_PER_PAGE = 8;
+
+const selectClass =
+  "w-full md:w-56 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-soft outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary-50";
 
 const ServiceListPage = () => {
   const [services, setServices] = useState([]);
@@ -12,22 +20,28 @@ const ServiceListPage = () => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
     const fetchServices = async () => {
-      const data = await userService.fetchServices();
-      setServices(data.services);
-      setFilteredServices(data.services);
+      try {
+        const data = await userService.fetchServices();
+        setServices(data.services);
+        setFilteredServices(data.services);
 
-      const queryParams = new URLSearchParams(location.search);
-      const category = queryParams.get("category");
-      if (category) {
-        setCategoryFilter(category);
-        filterServices(search, category);
+        const queryParams = new URLSearchParams(location.search);
+        const category = queryParams.get("category");
+        if (category) {
+          setCategoryFilter(category);
+          filterServices(search, category);
+        }
+      } finally {
+        setLoading(false);
       }
     };
     fetchServices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
 
   const handleSearch = (e) => {
@@ -51,105 +65,87 @@ const ServiceListPage = () => {
         (category === "" || service.category.name === category)
     );
     setFilteredServices(filtered);
+    setCurrentPage(1);
   };
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredServices.length / ITEMS_PER_PAGE);
   const currentServices = filteredServices.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handlePageChange = (page) => {
-    if (page > 0 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
   return (
     <>
       <Navbar />
-      <div className="p-5 mt-12 bg-gray-50 min-h-screen">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8 text-center">
-          Our Services
-        </h1>
-        <div className="flex flex-col md:flex-row justify-center items-center mb-8 space-y-4 md:space-y-0 md:space-x-4">
-          <input
-            type="text"
-            value={search}
-            onChange={handleSearch}
-            placeholder="Search services..."
-            className="px-4 py-2 w-full md:w-1/2 rounded-md border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          />
-          <select
-            value={categoryFilter}
-            onChange={handleCategoryFilter}
-            className="px-4 py-2 w-full md:w-1/4 rounded-md border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          >
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-fg font-display sm:text-4xl">Our Services</h1>
+          <p className="mt-2 text-fg-muted">Find the right professional for the job.</p>
+        </div>
+
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 md:flex-row">
+          <div className="relative w-full md:w-80">
+            <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-fg-subtle" />
+            <input
+              type="text"
+              value={search}
+              onChange={handleSearch}
+              placeholder="Search services..."
+              className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm shadow-soft outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary-50"
+            />
+          </div>
+          <select value={categoryFilter} onChange={handleCategoryFilter} className={selectClass}>
             <option value="">All Categories</option>
-            {Array.from(
-              new Set(services.map((service) => service.category.name))
-            ).map((category, index) => (
-              <option key={index} value={category}>
+            {Array.from(new Set(services.map((service) => service.category.name))).map((category) => (
+              <option key={category} value={category}>
                 {category}
               </option>
             ))}
           </select>
         </div>
-        
-        {/* Grid Layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {currentServices.map((service) => (
-            <Link
-              key={service._id}
-              to={`/service/${service._id}`}
-              className="block hover:-translate-y-2 transition-all duration-200"
-            >
-              <img
-                className="w-full h-48 rounded-lg object-cover mb-4"
-                src={service.imageUrl}
-                alt={service.name}
-              />
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                {service.name}
-              </h3>
-              <p className="text-gray-600">{service.category.name}</p>
-              <p className="mt-2 text-lg text-gray-900">$ {service.price}</p>
-              <div className="flex items-center mt-2">
-                <svg
-                  aria-hidden="true"
-                  className="w-5 h-5 text-gray-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927a1 1 0 011.902 0l1.07 3.292a1 1 0 00.95.69h3.462a1 1 0 01.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292a1 1 0 01-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034a1 1 0 01-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72a1 1 0 01.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <span className="ml-1 text-sm text-gray-700">
-                  {service.rating ? `${service.rating}.0` : `5.0`}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
 
-        {/* Pagination Controls */}
-        <div className="flex justify-center mb-8">
-          
-          {Array.from({ length: totalPages }, (_, index) => (
-            <button
-              key={index}
-              onClick={() => handlePageChange(index + 1)}
-              className={`px-4 py-2 mx-1 rounded-md ${
-                index + 1 === currentPage
-                  ? "bg-black text-white"
-                  : "bg-gray-300 text-gray-700"
-              }`}
-            >
-              {index + 1}
-            </button>
-          ))}
-          
-        </div>
+        {loading ? (
+          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton variant="rect" className="h-48 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : currentServices.length === 0 ? (
+          <EmptyState icon={SearchX} title="No services found" description="Try a different search term or category." />
+        ) : (
+          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {currentServices.map((service) => (
+              <Link key={service._id} to={`/service/${service._id}`}>
+                <Card padding="none" className="h-full overflow-hidden">
+                  <img className="h-48 w-full object-cover" src={service.imageUrl} alt={service.name} />
+                  <div className="p-4">
+                    <h3 className="truncate font-semibold text-fg">{service.name}</h3>
+                    <p className="mt-1 text-sm text-fg-muted">{service.category.name}</p>
+                    <div className="mt-2 flex items-center justify-between">
+                      <p className="font-semibold text-fg">${service.price}</p>
+                      <div className="flex items-center gap-1 text-amber-500">
+                        <Star size={14} fill="currentColor" strokeWidth={0} />
+                        <span className="text-sm font-medium text-fg">
+                          {service.rating ? `${service.rating}.0` : "5.0"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="mt-10 flex justify-center">
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+          </div>
+        )}
       </div>
       <Footer />
     </>

@@ -29,7 +29,7 @@ import {
 } from "../services/userServices.js";
 import bcrypt from "bcryptjs";
 import {
-  addFileToS3,
+  uploadFile,
   generateAccessToken,
   generateOtp,
   generateRefreshToken,
@@ -112,6 +112,7 @@ const userLogin = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log(error);
     res.status(401).json({ message: error.message });
   }
 };
@@ -532,7 +533,7 @@ const updateProfileImage = async (req, res) => {
       if (result.image) {
         await removeFile(result.image);
       }
-      await addFileToS3(file, fileName);
+      await uploadFile(file, fileName);
     }
     const url = await getFile(fileName);
     res.status(200).json({ url });

@@ -2,13 +2,23 @@ import { useEffect, useState } from "react";
 import { addService, getCategoriesService } from "../../services/adminService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { ImagePlus } from "lucide-react";
+import Input from "../ui/Input";
+import Button from "../ui/Button";
+
+const selectClass = (hasError) =>
+  `w-full rounded-xl border bg-white px-4 py-3 text-sm text-fg shadow-soft outline-none transition-colors focus:ring-4 ${
+    hasError ? "border-red-300 focus:ring-red-50" : "border-slate-200 focus:border-primary/50 focus:ring-primary-50"
+  }`;
 
 const AddService = () => {
   const [categories, setCategories] = useState();
   const [data, setData] = useState({});
   const [preview, setPreview] = useState();
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -20,15 +30,13 @@ const AddService = () => {
     };
     fetchCategories();
   }, []);
+
   function handleChange(e) {
     setData({ ...data, [e.target.name]: e.target.value });
   }
   function handleImageChange(e) {
     const file = e.target.files[0];
-    setData({
-      ...data,
-      image: file,
-    });
+    setData({ ...data, image: file });
     setPreview(URL.createObjectURL(file));
   }
 
@@ -57,6 +65,7 @@ const AddService = () => {
         return;
       }
       setErrors({});
+      setLoading(true);
       const formData = new FormData();
       formData.append("name", data.name);
       formData.append("price", data.price);
@@ -64,134 +73,72 @@ const AddService = () => {
       formData.append("description", data.description);
       formData.append("image", data.image);
       let result = await addService(formData);
-      if(result.status==200){
-          toast.success(result.data.message);
-          navigate("/admin/services")
+      if (result.status == 200) {
+        toast.success(result.data.message);
+        navigate("/admin/services");
       }
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   }
+
   return (
-    <div className="w-full flex justify-center mt-11">
-      <div className="bg-gray-100 border shadow-md p-8 w-1/2">
-        {/* {error && <p className="text-red-500 text-base mt-2">{error}</p>} */}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4 font-[sans-serif]">
-            <label
-              className="block text-gray-500 text-base font-semibold mb-2"
-              htmlFor="service_name"
-            >
-              Service Name
-            </label>
-            <input
-              className="border text-sm w-full py-2 px-3 text-gray-700 rounded  focus:outline-blue-700"
-              type="text"
-              placeholder="Enter Service Name"
-              id="service_name"
-              name="name"
-              onChange={(e) => handleChange(e)}
-            />
-            {errors.name && (
-              <p className="text-red-500 text-xs mt-2">{errors.name}</p>
-            )}
-          </div>
-          <div className="mb-4 font-[sans-serif]">
-            <label
-              className="block text-gray-500 text-base font-semibold mb-2"
-              htmlFor="price"
-            >
-              Price
-            </label>
-            <input
-              className="border text-sm w-full py-2 px-3 text-gray-700 rounded  focus:outline-blue-700"
-              type="text"
-              placeholder="Enter price"
-              id="price"
-              name="price"
-              onChange={(e) => handleChange(e)}
-            />
-            {errors.price && (
-              <p className="text-red-500 text-xs mt-2">{errors.price}</p>
-            )}
-          </div>
-          <div className="mb-4 font-[sans-serif]">
-            <label
-              className="block text-gray-500 text-base font-semibold mb-2"
-              htmlFor="description"
-            >
-              Description
-            </label>
-            <textarea
-              className="border text-sm w-full py-2 px-3 text-gray-700 rounded focus:outline-blue-700"
-              type="text"
-              placeholder="Enter description about the service"
-              id="description"
-              name="description"
-              onChange={(e) => handleChange(e)}
-            />
-            {errors.description && (
-              <p className="text-red-500 text-xs mt-2">{errors.description}</p>
-            )}
-          </div>
-          <div className="mb-4 font-[sans-serif]">
-            <label
-              className="block text-gray-500 text-base font-semibold mb-2"
-              htmlFor="category_name"
-            >
-              Category
-            </label>
-            <select
-              name="category"
-              className="border text-sm w-full py-2 px-3 text-gray-700 rounded focus:outline-blue-700"
-              onChange={(e) => handleChange(e)}
-            >
-              <option value="">Select a category</option>
-              {categories &&
-                categories.map((category, index) => (
-                  <option key={index} value={category._id}>
-                    {category.name}
-                  </option>
-                ))}
-            </select>
-            {errors.category && (
-              <p className="text-red-500 text-xs mt-2">{errors.category}</p>
-            )}
-          </div>
-          <div className="font-[sans-serif] max-w-md mx-auto">
-            <label className="text-base text-gray-500 font-semibold mb-2 block">
-              Upload Image
-            </label>
-            {preview && (
-              <div className="mt-4">
-                <img src={preview} alt="Preview" className="w-full h-auto" />
-              </div>
-            )}
-            <input
-              type="file"
-              className="w-full focus:ring-blue-700 text-gray-400 text-sm bg-white border file:cursor-pointer cursor-pointer file:border-0 file:py-3 file:px-4 file:mr-4 file:bg-gray-100 file:hover:bg-gray-200 file:text-gray-500 rounded"
-              accept="png,jpg,jpeg"
-              name="image"
-              onChange={(e) => handleImageChange(e)}
-            />
-            <p className="text-xs text-gray-400 mt-2">
-              PNG, JPG, JPEG are Allowed.
-            </p>
-            {errors.image && (
-              <p className="text-red-500 text-xs mt-2">{errors.image}</p>
-            )}
-          </div>
-          <div className="flex items-center justify-center mt-4">
-            <button
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded"
-              type="submit"
-            >
-              Add Service
-            </button>
-          </div>
-        </form>
+    <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-5">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <Input label="Service name" name="name" onChange={handleChange} error={errors.name} />
+        <Input label="Price" name="price" onChange={handleChange} error={errors.price} />
       </div>
-    </div>
+
+      <div>
+        <textarea
+          name="description"
+          placeholder="Description"
+          onChange={handleChange}
+          rows={3}
+          className={selectClass(errors.description)}
+        />
+        {errors.description && <p className="mt-1.5 text-xs text-red-500">{errors.description}</p>}
+      </div>
+
+      <div>
+        <select name="category" onChange={handleChange} className={selectClass(errors.category)} defaultValue="">
+          <option value="">Select a category</option>
+          {categories &&
+            categories.map((category) => (
+              <option key={category._id} value={category._id}>
+                {category.name}
+              </option>
+            ))}
+        </select>
+        {errors.category && <p className="mt-1.5 text-xs text-red-500">{errors.category}</p>}
+      </div>
+
+      <div>
+        <label
+          htmlFor="service-image"
+          className={`flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-6 py-8 text-center transition-colors hover:bg-slate-50 ${
+            errors.image ? "border-red-300" : "border-slate-200"
+          }`}
+        >
+          {preview ? (
+            <img src={preview} alt="Preview" className="h-32 w-32 rounded-xl object-cover" />
+          ) : (
+            <>
+              <ImagePlus size={28} className="text-fg-subtle" />
+              <span className="text-sm text-fg-muted">PNG, JPG, or JPEG</span>
+            </>
+          )}
+          <input id="service-image" type="file" accept="image/png, image/jpg, image/jpeg" onChange={handleImageChange} className="sr-only" />
+        </label>
+        {errors.image && <p className="mt-1.5 text-xs text-red-500">{errors.image}</p>}
+      </div>
+
+      <Button type="submit" size="lg" className="w-full" loading={loading}>
+        Add Service
+      </Button>
+    </form>
   );
 };
 export default AddService;

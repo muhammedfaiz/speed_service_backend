@@ -12,9 +12,9 @@ const EmployeeDashboard = () => {
       <Navbar />
       <Banner />
 
-      <div className="px-6 py-8 space-y-8">
+      <div className="mx-auto max-w-7xl space-y-8 px-4 py-12 sm:px-6 lg:px-8">
         <StatisticsOverview />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <UpcomingTasks />
           <Notifications />
         </div>

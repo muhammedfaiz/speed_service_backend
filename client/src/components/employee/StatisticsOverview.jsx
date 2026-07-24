@@ -1,63 +1,65 @@
-import { useEffect, useState } from 'react';
-import { FaTasks, FaDollarSign, FaCheckCircle, FaClipboardList } from 'react-icons/fa';
-import { fetchEmployeeStats } from '../../services/employeeService';
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { ClipboardList, ListChecks, DollarSign, CheckCircle2 } from "lucide-react";
+import { fetchEmployeeStats } from "../../services/employeeService";
+import Card from "../ui/Card";
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08 } },
+};
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+};
 
 const StatisticsOverview = () => {
-  const [completed,setCompleted]=useState(0);
-  const [pendingRequest,setPendingRequest]=useState(0);
-  const [earnings,setEarnings]=useState(0);
-  const [completionRate,setCompletionRate]=useState(0);
-  useEffect(()=>{
-    const fetchStats = async()=>{
+  const [completed, setCompleted] = useState(0);
+  const [pendingRequest, setPendingRequest] = useState(0);
+  const [earnings, setEarnings] = useState(0);
+  const [completionRate, setCompletionRate] = useState(0);
+
+  useEffect(() => {
+    const fetchStats = async () => {
       const data = await fetchEmployeeStats();
-      if(data){
+      if (data) {
         setCompleted(data.completed);
         setPendingRequest(data.pendingRequest);
         setEarnings(data.earnings);
         setCompletionRate(data.completionRate);
       }
-    }
+    };
     fetchStats();
-  })
+  }, []);
+
+  const stats = [
+    { label: "Completed Bookings", value: completed || 0, icon: ClipboardList, color: "text-primary bg-primary-50" },
+    { label: "Pending Requests", value: pendingRequest || 0, icon: ListChecks, color: "text-accent-600 bg-accent-50" },
+    { label: "Total Earnings", value: `$${earnings || 0}`, icon: DollarSign, color: "text-amber-600 bg-amber-50" },
+    { label: "Task Completion Rate", value: `${completionRate || 0}%`, icon: CheckCircle2, color: "text-secondary bg-secondary-50" },
+  ];
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow ease-in-out duration-300">
-        <div className="flex items-center space-x-4">
-          <FaClipboardList className="text-blue-600 text-4xl" />
-          <div>
-            <h3 className="text-lg font-semibold">Completed Bookings</h3>
-            <p className="text-3xl font-bold">{completed?completed:0}</p>
-          </div>
-        </div>
-      </div>
-      <div className="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow ease-in-out duration-300">
-        <div className="flex items-center space-x-4">
-          <FaTasks className="text-green-600 text-4xl" />
-          <div>
-            <h3 className="text-lg font-semibold">Pending Requests</h3>
-            <p className="text-3xl font-bold">{pendingRequest?pendingRequest:0 }</p>
-          </div>
-        </div>
-      </div>
-      <div className="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow ease-in-out duration-300">
-        <div className="flex items-center space-x-4">
-          <FaDollarSign className="text-yellow-600 text-4xl" />
-          <div>
-            <h3 className="text-lg font-semibold">Total Earnings</h3>
-            <p className="text-3xl font-bold">${earnings?earnings:0}</p>
-          </div>
-        </div>
-      </div>
-      <div className="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow ease-in-out duration-300">
-        <div className="flex items-center space-x-4">
-          <FaCheckCircle className="text-indigo-600 text-4xl" />
-          <div>
-            <h3 className="text-lg font-semibold">Task Completion Rate</h3>
-            <p className="text-3xl font-bold">{completionRate?completionRate:0}%</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <motion.div
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+    >
+      {stats.map((stat) => (
+        <motion.div key={stat.label} variants={fadeUp}>
+          <Card className="flex items-center gap-4">
+            <span className={`flex h-12 w-12 items-center justify-center rounded-2xl ${stat.color}`}>
+              <stat.icon size={22} />
+            </span>
+            <div>
+              <p className="text-sm text-fg-muted">{stat.label}</p>
+              <p className="text-2xl font-bold text-fg font-display">{stat.value}</p>
+            </div>
+          </Card>
+        </motion.div>
+      ))}
+    </motion.div>
   );
 };
 

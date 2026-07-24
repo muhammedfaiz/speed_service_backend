@@ -25,7 +25,7 @@ import {
   userChangeStatus,
 } from "../services/adminService.js";
 import {
-  addFileToS3,
+  uploadFile,
   generateAccessToken,
   generateAlphanumericValue,
   generateRefreshToken,
@@ -164,7 +164,7 @@ export const addCategory = async (req, res) => {
     const fileName = randomName(file);
     const category = await addCategoryService(data, fileName);
     if (file && category) {
-      await addFileToS3(file, fileName);
+      await uploadFile(file, fileName);
     }
     res.status(200).json({ message: "Added Category" });
   } catch (error) {
@@ -307,7 +307,7 @@ export const addNewService = async (req, res) => {
     };
     const result = await addServiceHelper(data);
     if (result && result.image) {
-      await addFileToS3(req.file, fileName);
+      await uploadFile(req.file, fileName);
     }
     if (result) {
       res.status(200).json({ message: "Service added successfully" });
@@ -365,7 +365,7 @@ export const updateServiceData = async (req, res) => {
     let fileName;
     if (req.file) {
       fileName = randomName(req.file);
-      await addFileToS3(req.file, fileName);
+      await uploadFile(req.file, fileName);
     }
     const data = {
       name,
@@ -505,7 +505,7 @@ export const updateCategoryDetails = async(req,res)=>{
     let fileName;
     if(req.file){
       fileName = randomName(req.file);
-      await addFileToS3(req.file,fileName);
+      await uploadFile(req.file,fileName);
     }
     const result = await updateCategoryDetailsService(id, {name,image:fileName});
     if(fileName && result.image){

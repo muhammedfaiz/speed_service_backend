@@ -1,41 +1,44 @@
-import { useEffect, useState } from 'react';
-import { FaHistory } from 'react-icons/fa';
-import { fetchRecentActivities } from '../../services/employeeService';
+import { useEffect, useState } from "react";
+import { History } from "lucide-react";
+import { fetchRecentActivities } from "../../services/employeeService";
+import Card from "../ui/Card";
+import EmptyState from "../ui/EmptyState";
 
 const RecentActivities = () => {
-  const [activities,setActivities]=useState([]);
+  const [activities, setActivities] = useState([]);
 
-  useEffect(()=>{
-    const getRecentActivities = async()=>{
+  useEffect(() => {
+    const getRecentActivities = async () => {
       const data = await fetchRecentActivities();
       setActivities(data.activities);
-    }
-
-    getRecentActivities()
-  },[]);
+    };
+    getRecentActivities();
+  }, []);
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow ease-in-out duration-300">
-      <h3 className="text-xl font-semibold mb-4">Recent Activities</h3>
-      <ul className="space-y-4">
-        {activities?activities.map(activity => (
-          <li key={activity._id} className="border-b pb-4 flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <FaHistory className="text-gray-600 text-xl" />
-              <div>
-                <p className="font-medium">{activity.orderId}</p>
-                <p className="text-sm text-gray-500">{activity.date}</p>
+    <Card hoverable={false}>
+      <h3 className="text-lg font-semibold text-fg font-display">Recent Activities</h3>
+      {!activities || activities.length === 0 ? (
+        <EmptyState icon={History} title="No recent activity" description="Completed jobs and feedback will appear here." />
+      ) : (
+        <ul className="mt-4 divide-y divide-slate-100">
+          {activities.map((activity) => (
+            <li key={activity._id} className="flex items-center justify-between gap-4 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-fg-muted">
+                  <History size={18} />
+                </span>
+                <div>
+                  <p className="font-medium text-fg">{activity.orderId}</p>
+                  <p className="text-sm text-fg-muted">{activity.date}</p>
+                </div>
               </div>
-            </div>
-            <p className="italic text-green-600">{activity.feedback}</p>
-          </li>
-        )):(
-          <div className='text-base text-gray-500'>
-            No Recent Activity
-          </div>
-        )}
-      </ul>
-    </div>
+              <p className="text-sm font-medium italic text-accent-600">{activity.feedback}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 };
 

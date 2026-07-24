@@ -1,30 +1,33 @@
-import { Link } from "react-router-dom";
-import icon from "../../assets/success-svg.svg";
+import { motion } from "framer-motion";
+import { CheckCircle2, ClipboardList } from "lucide-react";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
 
 const SuccessOrderPage = () => {
   return (
-    <div className="bg-gray-100 min-h-screen w-full flex justify-center items-center">
-      <div className="border bg-white p-8 flex flex-col items-center space-y-8 shadow-md rounded-md">
-        <img src={icon} alt="icon-success" className="w-1/3" />
-        <h1 className="text-3xl font-semibold">Thank you</h1>
-        <p className="text-gray-500 text-sm">
+    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
+      <Card hoverable={false} padding="lg" className="max-w-md text-center !rounded-3xl">
+        <motion.span
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.1 }}
+          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent-50 text-accent-600"
+        >
+          <CheckCircle2 size={44} />
+        </motion.span>
+        <h1 className="mt-6 text-2xl font-bold text-fg font-display">Thank you!</h1>
+        <p className="mt-3 text-fg-muted">
           Your order has been successfully placed. We will contact you shortly.
         </p>
-        <div className="space-x-6">
-          <Link
-            to="/"
-            className="bg-primary-blue p-3 text-white rounded hover:bg-secondary-blue"
-          >
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Button to="/" variant="outline" className="flex-1">
             Back to Home
-          </Link>
-          <Link
-            to="/bookings"
-            className="ring-1 ring-primary-blue text-primary-blue p-3 rounded hover:bg-primary-blue hover:text-white"
-          >
-            Show bookings
-          </Link>
+          </Button>
+          <Button to="/bookings" icon={ClipboardList} className="flex-1">
+            Show Bookings
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

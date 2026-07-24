@@ -1,108 +1,41 @@
-import { FaUser, FaUsers, FaList, FaBoxOpen, FaShoppingCart, FaUserFriends, FaChartBar } from 'react-icons/fa';
-import { MdDashboard } from "react-icons/md";
-import { NavLink } from 'react-router-dom';
+/* eslint-disable react/prop-types */
+import { NavLink } from "react-router-dom";
+import { LayoutDashboard, HardHat, UserPlus, Tags, Package, ShoppingCart, Users, BarChart3 } from "lucide-react";
 
-const Navbar = () => {
+const LINKS = [
+  { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/admin/employee", label: "Employee", icon: HardHat },
+  { to: "/admin/applicants", label: "Applicants", icon: UserPlus },
+  { to: "/admin/categories", label: "Categories", icon: Tags },
+  { to: "/admin/services", label: "Services", icon: Package },
+  { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
+  { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/sales-report", label: "Sales Report", icon: BarChart3 },
+];
+
+const Navbar = ({ onNavigate, light = false }) => {
   return (
-    <nav className="flex flex-col flex-grow">
-      <ul className="space-y-1 text-lg my-auto mx-auto">
-        <li>
-          <NavLink
-            to="/admin/dashboard"
-            className={({ isActive }) =>
-              isActive
-                ? "flex items-center bg-blue-500 text-white rounded-lg p-2 cursor-pointer transition-colors duration-200"
-                : "flex items-center hover:bg-blue-500 rounded-lg p-2 cursor-pointer transition-colors duration-200"
-            }
-          >
-            <MdDashboard className="mr-3" /> Dashboard
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/admin/employee"
-            className={({ isActive }) =>
-              isActive
-                ? "flex items-center bg-blue-500 text-white rounded-lg p-2 cursor-pointer transition-colors duration-200"
-                : "flex items-center hover:bg-blue-500 rounded-lg p-2 cursor-pointer transition-colors duration-200"
-            }
-          >
-            <FaUser className="mr-3" /> Employee
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/admin/applicants"
-            className={({ isActive }) =>
-              isActive
-                ? "flex items-center bg-blue-500 text-white rounded-lg p-2 cursor-pointer transition-colors duration-200"
-                : "flex items-center hover:bg-blue-500 rounded-lg p-2 cursor-pointer transition-colors duration-200"
-            }
-          >
-            <FaUsers className="mr-3" /> Applicants
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/admin/categories"
-            className={({ isActive }) =>
-              isActive
-                ? "flex items-center bg-blue-500 text-white rounded-lg p-2 cursor-pointer transition-colors duration-200"
-                : "flex items-center hover:bg-blue-500 rounded-lg p-2 cursor-pointer transition-colors duration-200"
-            }
-          >
-            <FaList className="mr-3" /> Categories
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/admin/services"
-            className={({ isActive }) =>
-              isActive
-                ? "flex items-center bg-blue-500 text-white rounded-lg p-2 cursor-pointer transition-colors duration-200"
-                : "flex items-center hover:bg-blue-500 rounded-lg p-2 cursor-pointer transition-colors duration-200"
-            }
-          >
-            <FaBoxOpen className="mr-3" /> Services
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/admin/orders"
-            className={({ isActive }) =>
-              isActive
-                ? "flex items-center bg-blue-500 text-white rounded-lg p-2 cursor-pointer transition-colors duration-200"
-                : "flex items-center hover:bg-blue-500 rounded-lg p-2 cursor-pointer transition-colors duration-200"
-            }
-          >
-            <FaShoppingCart className="mr-3" /> Orders
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/admin/users"
-            className={({ isActive }) =>
-              isActive
-                ? "flex items-center bg-blue-500 text-white rounded-lg p-2 cursor-pointer transition-colors duration-200"
-                : "flex items-center hover:bg-blue-500 rounded-lg p-2 cursor-pointer transition-colors duration-200"
-            }
-          >
-            <FaUserFriends className="mr-3" /> Users
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/admin/sales-report"
-            className={({ isActive }) =>
-              isActive
-                ? "flex items-center bg-blue-500 text-white rounded-lg p-2 cursor-pointer transition-colors duration-200"
-                : "flex items-center hover:bg-blue-500 rounded-lg p-2 cursor-pointer transition-colors duration-200"
-            }
-          >
-            <FaChartBar className="mr-3" /> Sales Report
-          </NavLink>
-        </li>
-      </ul>
+    <nav className="flex flex-1 flex-col gap-1 px-4">
+      {LINKS.map((link) => (
+        <NavLink
+          key={link.to}
+          to={link.to}
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            `flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
+              light
+                ? isActive
+                  ? "bg-primary-50 text-primary"
+                  : "text-fg-muted hover:bg-slate-100 hover:text-fg"
+                : isActive
+                ? "bg-white/10 text-white"
+                : "text-slate-400 hover:bg-white/5 hover:text-white"
+            }`
+          }
+        >
+          <link.icon size={18} /> {link.label}
+        </NavLink>
+      ))}
     </nav>
   );
 };

@@ -1,11 +1,24 @@
 import axios from 'axios';
 
-const API_URL = 'https://api.speedservice.store/api/message';
+const API_URL = 'http://localhost:5000/api/message';
 
 const axiosInstance = axios.create({
     baseURL: API_URL,
     withCredentials: true,
 })
+
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (!error.response) {
+            // Network-level failure (server unreachable, CORS block, timeout) — no
+            // response to inspect, so synthesize one so downstream `throw
+            // error.response.data` calls don't crash on `undefined.data`.
+            error.response = { data: { message: "Network error. Please check your connection and try again." } };
+        }
+        return Promise.reject(error);
+    }
+);
 
 export const sendMessageService = async(data)=>{
     try {

@@ -13,10 +13,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.622.0",
-    "@aws-sdk/s3-request-presigner": "^3.622.0",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -25,7 +24,7 @@
     "mongodb": "^6.8.0",
     "mongoose": "^8.5.1",
     "multer": "^1.4.5-lts.1",
-    "nodemailer": "^6.9.14",
+    "nodemailer": "^9.0.3",
     "socket.io": "^4.7.5"
   },
   "devDependencies": {

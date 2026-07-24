@@ -17,7 +17,11 @@ app.use(cookieParser());
 connect();
 app.use(
   cors({
-    origin: "https://speedservice.store",
+    // Vite's dev server falls back to 5174, 5175, etc. whenever 5173 is
+    // already taken, so pin to a single port here silently drops every
+    // request from the browser as an (unhelpful) network error. Accept any
+    // localhost port in dev instead.
+    origin: /^http:\/\/localhost:\d+$/,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   })

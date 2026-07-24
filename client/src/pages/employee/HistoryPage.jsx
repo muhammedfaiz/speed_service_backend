@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../components/employee/Navbar";
-import { FaCheckCircle, FaMapMarkerAlt, FaListUl } from "react-icons/fa";
+import { CheckCircle2, MapPin, ListChecks, History as HistoryIcon } from "lucide-react";
 import { getCompletedTasks } from "../../services/employeeService";
+import Card from "../../components/ui/Card";
+import EmptyState from "../../components/ui/EmptyState";
 
 const HistoryPage = () => {
   const [historyData, setHistoryData] = useState([]);
@@ -17,59 +19,52 @@ const HistoryPage = () => {
   return (
     <>
       <Navbar />
-      <div className="bg-gray-100 min-h-screen p-6">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Service History</h1>
-          <p className="text-sm text-gray-500 mb-8">History of service provided.</p>
+      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-bold text-fg font-display">Service History</h1>
+        <p className="mt-1 text-fg-muted">History of service provided.</p>
 
+        <div className="mt-8">
           {historyData.length === 0 ? (
-            <div className="text-center text-gray-600">
-              <p className="text-lg">No service history available yet.</p>
-            </div>
+            <EmptyState icon={HistoryIcon} title="No service history yet" description="Completed bookings will show up here." />
           ) : (
             <div className="space-y-6">
               {historyData.map((history) => (
-                <div
-                  key={history._id}
-                  className="bg-white shadow-lg rounded-lg p-6 hover:shadow-xl transition-shadow duration-300"
-                >
-                  <div className="flex justify-between items-center mb-4">
+                <Card key={history._id} hoverable={false}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <h2 className="text-2xl font-semibold text-gray-800">{history.user.name}</h2>
-                      <p className="text-sm text-gray-500">
+                      <h2 className="text-lg font-semibold text-fg font-display">{history.user.name}</h2>
+                      <p className="text-sm text-fg-muted">
                         {history.date} at {history.time}
                       </p>
                     </div>
-                    <div className="text-green-500 flex items-center space-x-2">
-                      <FaCheckCircle className="text-xl" />
+                    <div className="flex items-center gap-2 text-accent-600">
+                      <CheckCircle2 size={18} />
                       <span className="font-semibold">{history.status}</span>
                     </div>
-                    <div className="text-gray-800 text-lg font-semibold flex items-center space-x-2">
-                      <span>$ {history.totalAmount}</span>
-                    </div>
+                    <p className="text-lg font-bold text-fg">${history.totalAmount}</p>
                   </div>
-                  <div className="text-sm text-gray-700 space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <FaListUl className="text-lg text-blue-500" />
-                      <p>
-                        <strong>Items:</strong>{" "}
+                  <div className="mt-4 space-y-2 text-sm text-fg-muted">
+                    <p className="flex items-start gap-2">
+                      <ListChecks size={15} className="mt-0.5 shrink-0 text-primary" />
+                      <span>
+                        <strong className="text-fg">Items:</strong>{" "}
                         {history?.orderItems?.map((item, index) => (
                           <span key={item._id}>
                             {item?.item?.name} (No. of units: {item.quantity})
                             {index < history.orderItems.length - 1 ? ", " : ""}
                           </span>
                         ))}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <FaMapMarkerAlt className="text-lg text-red-500" />
-                      <p>
-                        <strong>Address:</strong> {history.address.locality}, {history.address.place},{" "}
+                      </span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <MapPin size={15} className="mt-0.5 shrink-0 text-red-500" />
+                      <span>
+                        <strong className="text-fg">Address:</strong> {history.address.locality}, {history.address.place},{" "}
                         {history.address.state}, {history.address.country}, {history.address.pincode}
-                      </p>
-                    </div>
+                      </span>
+                    </p>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           )}

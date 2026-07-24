@@ -1,14 +1,16 @@
 import Footer from "../../components/user/Footer";
 import Navbar from "../../components/user/Navbar";
-import { MdClose } from "react-icons/md";
 import { useEffect, useState } from "react";
-import Modal from "../../components/common/Modal";
+import Modal from "../../components/ui/Modal";
 import userService from "../../services/userService";
 import { toast } from "react-toastify";
-import { IoMdCart } from "react-icons/io";
 import { PayPalButton } from "react-paypal-button-v2";
 import { useNavigate, useParams } from "react-router-dom";
 import MapLocation from "../../components/user/MapLocation";
+import { ShoppingCart, Minus, Plus, MapPin, Clock3, Wallet, Banknote, CreditCard, Plus as PlusIcon } from "lucide-react";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import EmptyState from "../../components/ui/EmptyState";
 
 const Checkout = () => {
   const { id } = useParams();
@@ -26,30 +28,11 @@ const Checkout = () => {
 
   const navigate = useNavigate();
 
-  
-
   const slotTime = [
-    "9:00 AM",
-    "9:30 AM",
-    "10:00 AM",
-    "10:30 AM",
-    "11:00 AM",
-    "11:30 AM",
-    "12:00 PM",
-    "12:30 PM",
-    "01:00 PM",
-    "01:30 PM",
-    "02:00 PM",
-    "02:30 PM",
-    "03:00 PM",
-    "03:30 PM",
-    "04:00 PM",
-    "04:30 PM",
-    "05:00 PM",
-    "05:30 PM",
-    "06:00 PM",
-    "06:30 PM",
-    "07:00 PM",
+    "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+    "12:00 PM", "12:30 PM", "01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM",
+    "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM", "05:00 PM", "05:30 PM",
+    "06:00 PM", "06:30 PM", "07:00 PM",
   ];
 
   const today = new Date();
@@ -60,6 +43,7 @@ const Checkout = () => {
 
   const closeAddressModal = () => setIsAddressOpen(false);
   const closeSlotModal = () => setIsSlotOpen(false);
+
   useEffect(() => {
     const getAddressesData = async () => {
       const data = await userService.getAddresses();
@@ -76,10 +60,7 @@ const Checkout = () => {
     getCart();
   }, [isQuantityChange, id]);
 
-  
-
   const addressSubmit = async () => {
-    
     try {
       const result = await userService.addAddressPost(address);
       if (result.status == 200) {
@@ -94,11 +75,7 @@ const Checkout = () => {
 
   const handleQuantityUpdate = async (itemId, quantity, categoryId) => {
     try {
-      const result = await userService.updateItemQuantity(
-        itemId,
-        categoryId,
-        quantity
-      );
+      const result = await userService.updateItemQuantity(itemId, categoryId, quantity);
       if (result.status == 200) {
         toast.success(result.data.message);
         setIsQuantityChange(!isQuantityChange);
@@ -129,11 +106,7 @@ const Checkout = () => {
     try {
       if (paymentMethod == "cash") {
         const result = await userService.placeOrder({
-          cart,
-          selectedAddress,
-          selectedDate,
-          selectedTime,
-          paymentMethod,
+          cart, selectedAddress, selectedDate, selectedTime, paymentMethod,
         });
         if (result.status == 200) {
           toast.success(result.data.message);
@@ -149,16 +122,10 @@ const Checkout = () => {
     }
   };
 
-
   const successHandler = async (paymentResult) => {
-    console.log("Payment success!", paymentResult);
     if (paymentResult) {
       const response = await userService.placeOrder({
-        cart,
-        selectedAddress,
-        selectedDate,
-        selectedTime,
-        paymentMethod,
+        cart, selectedAddress, selectedDate, selectedTime, paymentMethod,
         captureId: paymentResult.purchase_units[0].payments.captures[0].id,
       });
       toast.success(response.data.message);
@@ -171,309 +138,199 @@ const Checkout = () => {
     toast.error("Payment Failed, please try again");
     console.log("Error!", error);
   };
+
   return (
     <>
       <Navbar />
       {cart?.items.length > 0 ? (
-        <div className="p-8 min-h-screen flex flex-col">
-          <h1 className="text-black text-2xl font-semibold mb-6">Checkout</h1>
-          <div className="flex flex-wrap -mx-4">
-            <div className="w-full lg:w-1/2 px-4 mb-6">
-              <div className="w-full border rounded-md p-4 bg-white">
-                <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-                <div className="border-b mb-4"></div>
-                {cart &&
-                  cart.items?.map((item) => (
-                    <div
-                      key={item.item._id}
-                      className="flex justify-between items-center mb-4"
-                    >
-                      <img
-                        src={item.imageUrl}
-                        alt=""
-                        className="w-16 rounded-md"
-                      />
-                      <p>{item.item.name}</p>
-                      <div className="flex items-center">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+          <h1 className="text-2xl font-bold text-fg font-display">Checkout</h1>
+
+          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="space-y-6">
+              <Card hoverable={false}>
+                <h2 className="font-semibold text-fg font-display">Order Summary</h2>
+                <div className="mt-4 space-y-4 border-t border-slate-100 pt-4">
+                  {cart.items?.map((item) => (
+                    <div key={item.item._id} className="flex items-center gap-3">
+                      <img src={item.imageUrl} alt="" className="h-14 w-14 rounded-xl object-cover" />
+                      <p className="min-w-0 flex-1 truncate text-sm text-fg">{item.item.name}</p>
+                      <div className="flex items-center gap-2">
                         <button
-                          className="bg-primary-blue text-white p-1 rounded-l-md w-8 h-8 flex items-center justify-center hover:bg-secondary-blue"
-                          onClick={() =>
-                            handleQuantityUpdate(
-                              item.item._id,
-                              -1,
-                              item.item.category
-                            )
-                          }
+                          className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-fg-muted hover:bg-slate-200"
+                          onClick={() => handleQuantityUpdate(item.item._id, -1, item.item.category)}
                         >
-                          -
+                          <Minus size={13} />
                         </button>
-                        <p className="w-6 text-center bg-secondary-blue p-1 text-white">
-                          {item.quantity}
-                        </p>
+                        <span className="w-5 text-center text-sm font-medium text-fg">{item.quantity}</span>
                         <button
-                          className="bg-primary-blue text-white p-1 rounded-r-md w-8 h-8 flex items-center justify-center hover:bg-secondary-blue"
-                          onClick={() =>
-                            handleQuantityUpdate(
-                              item.item._id,
-                              1,
-                              item.item.category
-                            )
-                          }
+                          className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white hover:bg-primary-700"
+                          onClick={() => handleQuantityUpdate(item.item._id, 1, item.item.category)}
                         >
-                          +
+                          <Plus size={13} />
                         </button>
                       </div>
-                      <p className="text-base font-normal">
-                        $ {item.item.price}
-                      </p>
+                      <p className="w-16 text-right text-sm font-medium text-fg">${item.item.price}</p>
                     </div>
                   ))}
-                <div className="border-b mb-4"></div>
-                <div className="pt-4">
-                  <div className="flex justify-between items-center">
-                    <p className="text-lg font-semibold">Total</p>
-                    <p className="text-lg font-semibold">
-                      $ {cart.totalAmount}
-                    </p>
-                  </div>
                 </div>
-              </div>
+                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+                  <p className="font-semibold text-fg">Total</p>
+                  <p className="font-semibold text-fg">${cart.totalAmount}</p>
+                </div>
+              </Card>
 
-              <div className="bg-white w-full border rounded-md p-5 mt-8">
-                <h2 className="text-lg font-semibold mb-4">Payment Summary</h2>
-                <div className="border-b mb-4"></div>
-                <div className="flex justify-between items-center mb-2">
-                  <p>Item Total</p>
-                  <p>$ {cart.totalAmount}.00</p>
-                </div>
-                {/* <div className="flex justify-between items-center mb-2">
-                  <p>Tax (5%)</p>
-                  <p>-</p>
-                </div> */}
-                <div className="flex justify-between items-center mb-2">
-                  <p>Discount</p>
-                  <p>- $ {cart?.discount}.00</p>
-                </div>
-                <div className="border-t pt-2">
-                  <div className="flex justify-between items-center">
-                    <p className="text-lg font-semibold">Total</p>
-                    <p className="text-lg font-semibold">
-                      $ {cart.totalAmount}.00
-                    </p>
+              <Card hoverable={false}>
+                <h2 className="font-semibold text-fg font-display">Payment Summary</h2>
+                <div className="mt-4 space-y-2 border-t border-slate-100 pt-4 text-sm">
+                  <div className="flex justify-between text-fg-muted">
+                    <p>Item Total</p>
+                    <p>${cart.totalAmount}.00</p>
+                  </div>
+                  <div className="flex justify-between text-fg-muted">
+                    <p>Discount</p>
+                    <p>- ${cart?.discount}.00</p>
+                  </div>
+                  <div className="flex justify-between border-t border-slate-100 pt-2 font-semibold text-fg">
+                    <p>Total</p>
+                    <p>${cart.totalAmount}.00</p>
                   </div>
                 </div>
-              </div>
+              </Card>
             </div>
 
-            <div className="w-full lg:w-1/2 px-4 mb-6">
-              <div className="w-full border rounded-md p-4 bg-white">
-                <h2 className="text-lg font-semibold">Address</h2>
-                <div className="border-b my-3"></div>
-                
-                <div
+            <div className="space-y-6">
+              <Card hoverable={false}>
+                <h2 className="font-semibold text-fg font-display">Address</h2>
+                <button
                   onClick={() => setIsAddressOpen(true)}
-                  className="p-3 mb-4 border border-dashed border-primary-blue rounded-lg cursor-pointer hover:bg-blue-50 transition duration-300"
+                  className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-primary/40 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary-50"
                 >
-                  <p className="text-sm text-primary-blue font-semibold text-center">
-                    + Add New Address
-                  </p>
-                </div>
-                <div className="w-full flex flex-wrap justify-evenly">
+                  <PlusIcon size={15} /> Add New Address
+                </button>
+                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {getAddresses &&
-                    getAddresses.map((address) => (
-                      <div
-                        key={address._id}
-                        className="p-3 mb-4 w-full sm:w-1/2 md:w-1/3 flex items-start space-x-3 border border-gray-200 rounded-lg"
+                    getAddresses.map((addr) => (
+                      <label
+                        key={addr._id}
+                        className={`flex cursor-pointer items-start gap-2.5 rounded-2xl border p-3 text-sm transition-colors ${
+                          selectedAddress === addr._id ? "border-primary bg-primary-50" : "border-slate-200 hover:bg-slate-50"
+                        }`}
                       >
                         <input
                           type="radio"
                           name="address"
                           className="mt-1"
-                          value={address._id}
-                          onClick={(e) => setSelectedAddress(e.target.value)}
+                          value={addr._id}
+                          onChange={(e) => setSelectedAddress(e.target.value)}
                         />
-                        <div className="ml-2">
-                          <p className="text-base font-semibold">
-                            {address.locality?address.locality:address.place}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {address.place}, {address.state}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {address.country}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {address.pincode}
-                          </p>
+                        <div>
+                          <p className="font-semibold text-fg">{addr.locality ? addr.locality : addr.place}</p>
+                          <p className="text-fg-muted">{addr.place}, {addr.state}</p>
+                          <p className="text-fg-muted">{addr.country}</p>
+                          <p className="text-fg-muted">{addr.pincode}</p>
                         </div>
-                      </div>
+                      </label>
                     ))}
                 </div>
-              </div>
+              </Card>
 
-              <div className="w-full border rounded-md p-4 bg-white mt-6">
-                <p className="text-lg font-semibold mb-2">Slot</p>
-                <div className="border-b "></div>
+              <Card hoverable={false}>
+                <h2 className="font-semibold text-fg font-display">Slot</h2>
                 {selectedDate && selectedTime && (
-                  <div className="flex p-5 justify-between">
-                    <p className="text-sm font-medium">Date: {selectedDate}</p>
-                    <p className="text-sm font-medium">Time: {selectedTime}</p>
+                  <div className="mt-3 flex items-center gap-4 rounded-xl bg-slate-50 p-3 text-sm">
+                    <span className="flex items-center gap-1.5 text-fg"><Clock3 size={14} className="text-primary" /> {selectedDate}</span>
+                    <span className="font-medium text-fg">{selectedTime}</span>
                   </div>
                 )}
-                <div className="border-b "></div>
-                <div className="flex justify-center items-center mt-4">
-                  <button
-                    onClick={() => setIsSlotOpen(true)}
-                    className="ring-1 ring-primary-blue text-primary-blue rounded-md p-2 hover:bg-primary-blue hover:text-white"
-                  >
-                    {selectedDate && selectedTime
-                      ? "Change your time and date"
-                      : "Select your time and date"}
-                  </button>
-                </div>
-              </div>
-              <div className="w-full border rounded-md p-4 bg-white mt-6">
-                <p className="text-lg font-semibold mb-2">Payment method</p>
-                <div className="border-b"></div>
-                <div className="flex space-x-3 p-4">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="cash"
-                    className="mt-1"
-                    onClick={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  <label htmlFor="cod" className="flex items-center space-x-2">
-                    Cash on Service
-                  </label>
-                </div>
-                <div className="flex space-x-3 p-4">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="paypal"
-                    className="mt-1"
-                    onClick={(e) => setPaymentMethod(e.target.value)}
-                  />
+                <Button variant="outline" className="mt-4 w-full" onClick={() => setIsSlotOpen(true)}>
+                  {selectedDate && selectedTime ? "Change your time and date" : "Select your time and date"}
+                </Button>
+              </Card>
+
+              <Card hoverable={false}>
+                <h2 className="font-semibold text-fg font-display">Payment Method</h2>
+                <div className="mt-4 space-y-3">
                   <label
-                    htmlFor="stripe"
-                    className="flex items-center space-x-2"
+                    className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-3.5 text-sm font-medium transition-colors ${
+                      paymentMethod === "cash" ? "border-primary bg-primary-50" : "border-slate-200 hover:bg-slate-50"
+                    }`}
                   >
-                    Paypal
+                    <input type="radio" name="paymentMethod" value="cash" onChange={(e) => setPaymentMethod(e.target.value)} />
+                    <Banknote size={17} className="text-primary" /> Cash on Service
+                  </label>
+                  <label
+                    className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-3.5 text-sm font-medium transition-colors ${
+                      paymentMethod === "paypal" ? "border-primary bg-primary-50" : "border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <input type="radio" name="paymentMethod" value="paypal" onChange={(e) => setPaymentMethod(e.target.value)} />
+                    <CreditCard size={17} className="text-primary" /> PayPal
                   </label>
                 </div>
-              </div>
+              </Card>
             </div>
           </div>
-          <div className="flex justify-end mt-6">
+
+          <div className="mt-8 flex justify-end">
             {paymentMethod === "paypal" ? (
-              <PayPalButton
-                amount={cart.totalAmount}
-                onSuccess={successHandler}
-                onError={errorHandler}
-              />
+              <PayPalButton amount={cart.totalAmount} onSuccess={successHandler} onError={errorHandler} />
             ) : (
-              <button
-                className="bg-primary-blue text-white px-6 py-3 rounded-md shadow-md hover:bg-secondary-blue focus:outline-none"
-                onClick={() => handlePlaceOrder()}
-              >
+              <Button size="lg" icon={Wallet} onClick={handlePlaceOrder}>
                 Place Order
-              </button>
+              </Button>
             )}
           </div>
         </div>
       ) : (
-        <div className="flex flex-col justify-center items-center p-8 min-h-screen">
-          <IoMdCart className="text-primary-blue text-5xl" />
-          <p className="text-gray-500 text-lg font-medium">
-            Your cart is empty
-          </p>
-          <p className="text-gray-400">
-            Add items to your cart to see them here.
-          </p>
+        <div className="px-4 py-16">
+          <EmptyState icon={ShoppingCart} title="Your cart is empty" description="Add items to your cart to see them here." />
         </div>
       )}
       <Footer />
-      <Modal isOpen={isAddressOpen} onClose={closeAddressModal}>
-        <div className="flex items-start justify-between">
-          <h2 className="text-xl font-semibold mb-4">Add New Address</h2>
-          <MdClose onClick={closeAddressModal} className="cursor-pointer" />
+
+      <Modal isOpen={isAddressOpen} onClose={closeAddressModal} title="Add New Address" size="lg">
+        <MapLocation setAddress={setAddress} />
+        <div className="mt-6 flex justify-end">
+          <Button icon={MapPin} onClick={addressSubmit}>
+            Add Address
+          </Button>
         </div>
-        <div>
-        <MapLocation setAddress={setAddress}/>
-        <div className="flex justify-end mt-12">
-            <button
-              type="button"
-              className="ring-1 ring-primary-blue text-primary-blue py-2 px-4 rounded-md hover:bg-primary-blue hover:text-white"
-              onClick={addressSubmit}
-            >
-              Add Address
-            </button>
-          </div>
-        </div>
-        
       </Modal>
-      <Modal isOpen={isSlotOpen} onClose={closeSlotModal}>
-        <div className="flex items-start justify-between p-3">
-          <h2 className="text-lg font-semibold mb-2">
-            When should the professional Arrive?
-          </h2>
-          <MdClose onClick={closeSlotModal} className="cursor-pointer" />
-        </div>
-        <div className="flex px-4 space-x-4">
+
+      <Modal isOpen={isSlotOpen} onClose={closeSlotModal} title="When should the professional arrive?" size="lg">
+        <div className="flex gap-4">
           {Object.entries(slotDate).map(([key, date]) => (
             <button
               key={key}
-              className={`px-8 py-3 rounded-md focus:ring-2 ${
-                selectedDate == date.toDateString()
-                  ? "ring-2 ring-primary-blue"
-                  : "border border-gray-300"
+              className={`flex flex-col items-center rounded-2xl px-6 py-3 transition-colors ${
+                selectedDate == date.toDateString() ? "bg-primary text-white" : "border border-slate-200 hover:bg-slate-50"
               }`}
-              onClick={() => {
-                setSelectedDate(date.toDateString());
-                console.log(selectedDate);
-              }}
+              onClick={() => setSelectedDate(date.toDateString())}
             >
-              <div className="flex flex-col justify-center">
-                <p className="text-sm text-gray-700 text-center">
-                  {date.toLocaleDateString(undefined, { weekday: "short" })}
-                </p>
-                <p className="text-base font-semibold text-center mt-1 text-black">
-                  {date.getDate()}
-                </p>
-              </div>
+              <p className="text-xs">{date.toLocaleDateString(undefined, { weekday: "short" })}</p>
+              <p className="mt-0.5 text-base font-semibold">{date.getDate()}</p>
             </button>
           ))}
         </div>
-        <div className="p-3 mt-4 flex justify-start items-center">
-          <h2 className="text-lg font-semibold mb-2">
-            Select start time of service
-          </h2>
-        </div>
-        <div className="flex px-4 space-x-1 space-y-3 flex-wrap justify-around">
-          {slotTime.map((time, index) => (
+
+        <h3 className="mt-6 font-semibold text-fg">Select start time of service</h3>
+        <div className="mt-3 flex max-h-64 flex-wrap gap-2 overflow-y-auto">
+          {slotTime.map((time) => (
             <button
-              key={index}
-              className={`border p-3 rounded-md focus:ring-2 ${
-                selectedTime === time
-                  ? "ring-2 ring-primary-blue"
-                  : "border-gray-200"
-              } flex-shrink-0`}
+              key={time}
+              className={`rounded-full px-4 py-2 text-sm transition-colors ${
+                selectedTime === time ? "bg-primary text-white" : "border border-slate-200 text-fg hover:bg-slate-50"
+              }`}
               onClick={() => setSelectedTime(time)}
             >
-              <div className="flex items-center">
-                <p className="text-sm text-gray-700">{time}</p>
-              </div>
+              {time}
             </button>
           ))}
         </div>
-        <div className="flex justify-end p-2">
-          <button
-            className="py-3 px-4 bg-primary-blue mt-2 text-white rounded-md hover:bg-secondary-blue"
-            onClick={() => closeSlotModal()}
-          >
-            Add
-          </button>
+
+        <div className="mt-6 flex justify-end">
+          <Button onClick={closeSlotModal}>Done</Button>
         </div>
       </Modal>
     </>

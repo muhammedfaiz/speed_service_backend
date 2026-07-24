@@ -1,106 +1,147 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { resendOtp, verifyOtp } from "../../features/userSlice";
 import { useNavigate } from "react-router-dom";
+import { MailCheck, RotateCcw } from "lucide-react";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+
+const OTP_LENGTH = 6;
 
 const Otp = () => {
-    const [otp,setOtp] = useState('');
-    const [errors,setErrors]=useState({});
-    const [timeLeft,setTimeLeft]=useState(60);
-    const [isExpired,setIsExpired]=useState(false);
+  const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(""));
+  const [errors, setErrors] = useState({});
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [isExpired, setIsExpired] = useState(false);
+  const inputsRef = useRef([]);
 
-    const navigate = useNavigate();
-    const {user,error}=useSelector(store=>store.user);
-    const dispatch=useDispatch();
-    function handleSubmit(){
-        if(!otp){
-            setErrors({otp: "OTP is required"});
-            return;
-        }
-        if(otp.length < 6){
-            setErrors({otp: "OTP should be at least 6 digits"});
-            return;
-        }
-        if(user.otpSent){
-            setErrors({});
-            dispatch(verifyOtp({userId:user.id,otp}));
-        }
+  const navigate = useNavigate();
+  const { user, error, loading } = useSelector((store) => store.user);
+  const dispatch = useDispatch();
+
+  const otp = digits.join("");
+
+  function handleDigitChange(index, value) {
+    const clean = value.replace(/[^0-9]/g, "").slice(-1);
+    setDigits((prev) => {
+      const next = [...prev];
+      next[index] = clean;
+      return next;
+    });
+    if (clean && index < OTP_LENGTH - 1) {
+      inputsRef.current[index + 1]?.focus();
     }
-    async function handleResend(){
-        await dispatch(resendOtp({userId:user.id}));
-        setTimeLeft(60);
-        setIsExpired(false);
-    }
+  }
 
-    useEffect(()=>{
-        if(user?.isVerified){
-            navigate("/");
+  function handleKeyDown(index, e) {
+    if (e.key === "Backspace" && !digits[index] && index > 0) {
+      inputsRef.current[index - 1]?.focus();
+    }
+  }
+
+  function handlePaste(e) {
+    const pasted = e.clipboardData.getData("text").replace(/[^0-9]/g, "").slice(0, OTP_LENGTH);
+    if (!pasted) return;
+    e.preventDefault();
+    setDigits(Array.from({ length: OTP_LENGTH }, (_, i) => pasted[i] || ""));
+    inputsRef.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
+  }
+
+  function handleSubmit() {
+    if (!otp || otp.length < OTP_LENGTH) {
+      setErrors({ otp: "Enter the full 6-digit code" });
+      return;
+    }
+    if (user.otpSent) {
+      setErrors({});
+      dispatch(verifyOtp({ userId: user.id, otp }));
+    }
+  }
+
+  async function handleResend() {
+    await dispatch(resendOtp({ userId: user.id }));
+    setDigits(Array(OTP_LENGTH).fill(""));
+    setTimeLeft(60);
+    setIsExpired(false);
+    inputsRef.current[0]?.focus();
+  }
+
+  useEffect(() => {
+    if (user?.isVerified) {
+      navigate("/");
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 1) {
+          clearInterval(interval);
+          setIsExpired(true);
+          return 0;
         }
-    },[user,navigate]);
+        return prevTime - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timeLeft, isExpired]);
 
-    useEffect(()=>{
-        const interval = setInterval(()=>{
-            setTimeLeft(prevTime=>{
-                if(prevTime<=1){
-                    clearInterval(interval);
-                    setIsExpired(true);
-                    return 0;
-                }
-                return prevTime-1;
-            })
-        },1000);
-        return ()=>clearInterval(interval);
-    },[timeLeft,isExpired]);
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
 
-    const formatTime=(seconds)=>{
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    }
   return (
-    <div className="flex flex-col w-full max-w-md px-4 py-8 rounded-lg shadow bg-gray-800 sm:px-6 md:px-8 lg:px-10">
-    <div className="self-center mb-6 text-xl font-light sm:text-2xl text-white">
-      Otp Verification
-    </div>
-    <div className="mt-8">
-    {error && <p className="text-red-500 text-base mb-2">{error.message}</p>}
-    {!isExpired && <div className="justify-center items-center mb-4 flex">
-        <h3 className="text-lg text-blue-500">Time left:</h3>
-        <p className="px-2 text-lg text-blue-500">{formatTime(timeLeft)}</p>
-    </div>}
-      <div className="flex flex-col mb-2">
-          {errors.otp && <p className="text-red-500 text-xs mb-1">{errors.otp}</p>}
-        <div className="flex relative ">
+    <Card hoverable={false} padding="lg" className="!rounded-3xl">
+      <p className="text-xs font-semibold uppercase tracking-wide text-primary">Step 3 · Verification</p>
+      <span className="mt-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary">
+        <MailCheck size={22} />
+      </span>
+      <h1 className="mt-5 text-2xl font-bold text-fg font-display">Verify your email</h1>
+      <p className="mt-1.5 text-sm text-fg-muted">Enter the 6-digit code we sent to your email address.</p>
+
+      {error && <p className="mt-4 text-sm text-red-500">{error.message}</p>}
+
+      {!isExpired && (
+        <p className="mt-6 text-center text-sm text-fg-muted">
+          Code expires in <span className="font-semibold text-primary">{formatTime(timeLeft)}</span>
+        </p>
+      )}
+
+      <div className="mt-4 flex justify-center gap-2 sm:gap-3" onPaste={handlePaste}>
+        {digits.map((digit, index) => (
           <input
+            key={index}
+            ref={(el) => (inputsRef.current[index] = el)}
             type="text"
-            id="sign-in-email"
-            className={`rounded-lg flex-1 appearance-none border border-gray-300 w-full py-2 px-4 bg-white text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 ${errors.otp ? "focus:ring-red-600 ring-2 ring-red-600":"focus:ring-blue-600"} focus:border-transparent`}
-            placeholder="Your otp"
-            onChange={(e) => setOtp(e.target.value)}
+            inputMode="numeric"
+            maxLength={1}
+            value={digit}
+            onChange={(e) => handleDigitChange(index, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(index, e)}
+            className={`h-12 w-10 rounded-xl border text-center text-lg font-semibold text-fg shadow-soft outline-none transition-colors focus:ring-4 sm:h-14 sm:w-12 ${
+              errors.otp
+                ? "border-red-300 focus:ring-red-50"
+                : "border-slate-200 focus:border-primary/50 focus:ring-primary-50"
+            }`}
           />
-        </div>
+        ))}
       </div>
-      <div className="flex w-full">
-        {!isExpired ?(
-            <button
-            type="submit"
-            onClick={() => handleSubmit()}
-            className="py-2 px-4  bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 focus:ring-offset-purple-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg "
-          >
+      {errors.otp && <p className="mt-2 text-center text-xs text-red-500">{errors.otp}</p>}
+
+      <div className="mt-8">
+        {!isExpired ? (
+          <Button size="lg" className="w-full" onClick={handleSubmit} loading={loading}>
             Verify
-          </button>
-        ):(
-            <button
-          type="submit"
-          onClick={() =>handleResend() }
-          className="py-2 px-4  bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 focus:ring-offset-purple-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg "
-        >
-          Resend Otp
-        </button>
+          </Button>
+        ) : (
+          <Button size="lg" variant="outline" icon={RotateCcw} className="w-full" onClick={handleResend}>
+            Resend OTP
+          </Button>
         )}
       </div>
-    </div>
-  </div>
-  )
-}
-export default Otp
+    </Card>
+  );
+};
+export default Otp;

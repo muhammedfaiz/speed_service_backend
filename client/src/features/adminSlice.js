@@ -5,7 +5,7 @@ const initialState = {
     admin:JSON.parse(localStorage.getItem('admin'))||null,
     loading:false,
     error:null,
-    token:localStorage.getItem("access_token")||null,
+    token:localStorage.getItem("admin_access_token")||null,
     isSuccess:false,
 }
 

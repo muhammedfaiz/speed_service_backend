@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const Api_Url = "https://api.speedservice.store/api/user";
+const Api_Url = "http://localhost:5000/api/user";
 
 const axiosInstance = axios.create({
   baseURL: Api_Url,
@@ -24,6 +24,14 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    if (!error.response) {
+      // Network-level failure (server unreachable, CORS block, timeout, DNS) —
+      // there's no server response to inspect, so synthesize one here. Without
+      // this, every service function's `throw error.response.data` below would
+      // crash on `undefined.data` instead of surfacing a real error message.
+      error.response = { data: { message: "Network error. Please check your connection and try again." } };
+      return Promise.reject(error);
+    }
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {

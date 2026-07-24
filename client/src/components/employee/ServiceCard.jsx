@@ -1,62 +1,58 @@
-import { acceptService, rejectService } from "../../services/employeeService";
-import {toast} from 'react-toastify';
-
 /* eslint-disable react/prop-types */
-const ServiceCard = ({ service,setIsChanged,isChanged,serviceList }) => {
+import { Check, X } from "lucide-react";
+import { acceptService, rejectService } from "../../services/employeeService";
+import { toast } from "react-toastify";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+
+const ServiceCard = ({ service, setIsChanged, isChanged, serviceList }) => {
   const handleAccept = async (id) => {
     try {
       const result = await acceptService(id);
-      if(result.status==200){
-        setIsChanged(!isChanged)
-        toast.success(result.data.message)
+      if (result.status == 200) {
+        setIsChanged(!isChanged);
+        toast.success(result.data.message);
       }
     } catch (error) {
       toast.error(error.message);
     }
   };
-  const handleReject = async(id) => {
+  const handleReject = async (id) => {
     try {
-        console.log("entered")
-        const result = await rejectService(id);
-        if(result.status==200){
-            setIsChanged(!isChanged)
-            toast.success(result.data.message)
-        }
+      const result = await rejectService(id);
+      if (result.status == 200) {
+        setIsChanged(!isChanged);
+        toast.success(result.data.message);
+      }
     } catch (error) {
-        toast.error(error.message);
+      toast.error(error.message);
     }
   };
+
   return (
-    <div className="flex max-w-full overflow-hidden bg-white rounded-lg shadow-lg my-8 justify-evenly items-center">
+    <Card className="mb-5 flex items-center gap-5">
       <img
-        className="w-1/6 rounded-md bg-cover m-3"
+        className="h-20 w-20 shrink-0 rounded-2xl object-cover"
         src={service.imageUrl}
+        alt={service.name}
       />
-
-      <div className="w-2/3 p-4 md:p-4 ">
-        <h1 className="text-xl font-bold text-gray-800 ">{service.name}</h1>
-
-        <p className="mt-2 text-sm text-gray-600 ">{service.description}</p>
-        <div className="flex justify-between mt-3 item-center">
-          <h1 className="text-lg font-bold text-gray-700 md:text-xl">
-            $ {service.price}
-          </h1>
-         {serviceList ? (<button
-            className="px-2 py-1 text-base font-semibold text-white uppercase transition-colors duration-300 transform bg-blue-800 rounded  hover:bg-blue-700 focus:outline-none focus:bg-blue-700"
-            onClick={() => handleAccept(service._id)}
-          >
-            Accept
-          </button>):(
-            <button
-            className="px-2 py-1 text-base font-semibold text-white uppercase transition-colors duration-300 transform bg-red-700 rounded  hover:bg-red-600 focus:outline-none focus:bg-red-700"
-            onClick={() => handleReject(service._id)}
-          >
-            Decline
-          </button>
+      <div className="flex-1">
+        <h3 className="font-semibold text-fg">{service.name}</h3>
+        <p className="mt-1 line-clamp-2 text-sm text-fg-muted">{service.description}</p>
+        <div className="mt-3 flex items-center justify-between">
+          <p className="text-lg font-bold text-fg">${service.price}</p>
+          {serviceList ? (
+            <Button size="sm" icon={Check} onClick={() => handleAccept(service._id)}>
+              Accept
+            </Button>
+          ) : (
+            <Button size="sm" variant="danger" icon={X} onClick={() => handleReject(service._id)}>
+              Decline
+            </Button>
           )}
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 

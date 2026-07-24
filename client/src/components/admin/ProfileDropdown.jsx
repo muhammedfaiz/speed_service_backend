@@ -1,15 +1,14 @@
-import { useState } from 'react';
-import { FaUserCircle } from 'react-icons/fa';
-import { useDispatch } from 'react-redux';
-import { adminLogout } from '../../features/adminSlice';
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AnimatePresence, motion } from "framer-motion";
+import { LogOut, User as UserIcon } from "lucide-react";
+import { adminLogout } from "../../features/adminSlice";
+import Avatar from "../ui/Avatar";
 
 const ProfileDropdown = () => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
-
-  const handleDropdownToggle = () => {
-    setDropdownOpen(!dropdownOpen);
-  };
+  const { admin } = useSelector((store) => store.admin);
 
   const handleLogout = () => {
     dispatch(adminLogout());
@@ -17,22 +16,31 @@ const ProfileDropdown = () => {
 
   return (
     <div className="relative">
-      <FaUserCircle
-        className="text-slate-700 w-8 h-8 cursor-pointer"
-        onClick={handleDropdownToggle}
-      />
-      {dropdownOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
-          <ul className="py-1">
-            <li
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-200 cursor-pointer"
+      <button onClick={() => setOpen(!open)} className="flex items-center gap-2 rounded-full transition-transform hover:scale-105">
+        <Avatar name={admin?.name} size="sm" ring />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -8 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-2xl border border-slate-100 bg-card p-1.5 shadow-elevated"
+          >
+            <div className="flex items-center gap-2 px-3 py-2 text-sm text-fg-muted">
+              <UserIcon size={14} /> {admin?.name || "Admin"}
+            </div>
+            <button
               onClick={handleLogout}
+              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
             >
-              Logout
-            </li>
-          </ul>
-        </div>
-      )}
+              <LogOut size={16} /> Logout
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
